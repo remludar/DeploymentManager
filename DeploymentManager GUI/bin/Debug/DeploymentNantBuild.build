@@ -1,0 +1,533 @@
+<project name="YourApp" default="do-build" xmlns="http://nant.sf.net/release/0.85-rc4/nant.xsd">
+<!-- Version settings -->
+
+<property name="EnvName" value="RightAngle.15.0.RegressDev"/> <!-- must match IIS virtual directory name -->
+<property name="NantOutputPath" value="\\10.58.40.18\deployment\Builds\NonSQL\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\"/>
+<property name="TargetAppServer" value="MOTAPPDEV3001.motivadev.dev/${EnvName}"/>
+<property name="build.output" value="C:\Source\RightAngle\Development\Motiva.RightAngle"/>
+<property name="build.powerbuilder" value="C:\Source\RightAngle\Development\Motiva.RightAngle.PB"/>
+<property name="build.outputAcctgFrmeWrk" value="C:\Source\RightAngle\Development\CustomAccountingFramework\Custom.Server.ConfigurationData"/>
+<property name="build.outputExchangeFrmeWrk" value="C:\Source\RightAngle\Development\Exchange Integration\"/>
+<property name="build.outputGlobalViewFrmeWrk" value="C:\Source\RightAngle\Development\GlobalView\"/>
+<property name="build.outputMovementLifeCycle" value="C:\Source\RightAngle\Development\MTVMovementLifeCycle\OutPut\"/>
+<property name="Interfacebuild.output" value="C:\Source\RightAngle\Development\Motiva.RightAngle.Interfaces"/>
+
+<property name="EnvTransform" value=""/>
+<property name="DllIndentifier" value="Motiva"/>
+<property name="ServiceMonitor" value="SRAMsgSvc15.0"/> 
+ <!-- the public target -->
+
+ <!--Copy Client DLL-->
+ <target name="MoveClientDLL" description="move files from build folder to server/bin folder for development Testing">
+    <delete >
+      <fileset basedir="${NantOutputPath}\Client${EnvTransform}">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.client*.dll" />
+        <include name="SolArc.RightAngle.Custom.Rule.Common.dll"/>
+		<include name="Custom.Client.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+		<include name="Custom.OLF.RightAngle.Client.ExchangeIntegrationDisplayStyles.dll"/>
+		<include name="SolArc.RightAngle.Client.Integration.dll"/>
+		<include name="SolArc.*.dll"/>
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Client${EnvTransform}" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\output">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.client*.dll" />
+        <!--<include name="SolArc.RightAngle.Custom.Rule.Common.dll"/>-->
+		<include name="Custom.Client.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+      </fileset>
+    </copy>
+ </target>
+
+ <!--Copy Server DLL-->
+ <target name="MoveServerDLL" description="move files from build folder to server/bin folder for development Testing">
+    <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\bin">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.Server*.dll" />
+        <include name="SolArc.RightAngle.Custom.Rule*.dll"/>
+		<include name="Custom.Server.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.ExchangeIntegration.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.ExchangeIntegrationRules.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.IntegrationError.dll"/>
+		<include name="SolArc.*.dll"/>
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\output">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.Server*.dll" />
+        <!--<include name="SolArc.RightAngle.Custom.Rule*.dll"/>-->
+		<include name="Custom.Server.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+      </fileset>
+    </copy>
+ </target>
+  <!--Copy Server DLL-->
+ <target name="MoveServiceServerDLL" description="move files from build folder to server/bin folder for development Testing">
+    <delete >
+      <fileset basedir="${NantOutputPath}\ServiceServer${EnvTransform}\bin">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.Server*.dll" />
+        <include name="SolArc.RightAngle.Custom.Rule*.dll"/>
+		<include name="Custom.Server.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.ExchangeIntegration.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.ExchangeIntegrationRules.dll"/>
+		<include name="Custom.OLF.RightAngle.Server.IntegrationError.dll"/>
+		<include name="SolArc.*.dll"/>
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\ServiceServer${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\output">
+        <include name="${DllIndentifier}.RightAngle.Common*.dll" />
+        <include name="${DllIndentifier}.RightAngle.Server*.dll" />
+       <!-- <include name="SolArc.RightAngle.Custom.Rule*.dll"/>-->
+		<include name="Custom.Server.AccountingFramework.dll"/>
+		<include name="Custom.Common.AccountingFramework.dll"/>
+      </fileset>
+    </copy>
+ </target>
+
+
+ <!--Copy DataDictionary Config Files-->
+ <target name="MoveDataDictionaryConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom DataDictionary config " /> 
+      <echo message="Delete files path: ${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override " />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\DataDictionary\override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Custom.Server.ConfigurationData\DataDictionary\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+ <!--Copy Report Config Files-->
+ <target name="MoveReportConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom Report config }" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Reports\Override">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Reports\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\Reports\override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Reports\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Custom.Server.ConfigurationData\Reports\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+ <!--Copy Report View Files-->
+ <target name="MoveReportView" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom ReportView config }" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\ReportViews\Override">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\ReportViews\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\ReportViews\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+ <!--Copy System Config Files-->
+ <target name="MoveSystemConfig" description="move files from build folder to development Testing">
+     <echo message="Delete and copy custom Report config }" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\System\Override">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\System\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\System\override">
+        <include name="*.config" />
+        <include name="*.XML" />		
+      </fileset>      	  
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\System\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\System\override">
+        <include name="ConnectionStrings.config" /> 	
+      </fileset>      
+	  <filterchain>
+        <replacestring from="URLaddress/URLvdir" to="${TargetAppServer}${EnvTransform}" ignorecase="true" />
+      </filterchain>
+    </copy>	
+ </target>
+
+  <!--Copy UserInterface Config Files-->
+ <target name="MoveUserInterfaceConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom UserInterface config }" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\UserInterface\Override">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\UserInterface\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\UserInterface\override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+     <!--Copy Pipeline Files-->
+ <target name="MoveAllPipelines" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework Pipelines }" />  
+	
+		<foreach item="Folder" in="${build.output}\output\ConfigurationData\Pipelines" property="folderpath">
+               <property name = "path" value = "${folderpath}"/>
+			   <property name = "folder" value = "${string::substring(path, string::last-index-of(path, '\') + 1, string::get-length(path) - string::last-index-of(path, '\') - 1)}" />
+			   <copy todir="${NantOutputPath}\Server\ConfigurationData\Pipelines\${folder}" flatten="true" overwrite="true" verbose="false">
+					<fileset basedir="${folderpath}">
+						<include name="*.config" />
+					</fileset>
+				</copy>
+        </foreach>
+</target>
+   <target name="MovePipelines" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom service files " /> 
+      <echo message="Delete files path: ${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\CustomMessageHandler" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\CustomMessageHandler">
+        <include name="*.config" />        
+      </fileset>
+    </delete>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\CustomMessageHandler" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Custom.Server.ConfigurationData\Pipelines\CustomMessageHandler">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+  <target name="MoveServiceFiles" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom service files " /> 
+      <echo message="Delete files path: ${NantOutputPath}\Server${EnvTransform}" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\MotivaServices">
+        <include name="*.svc" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\MotivaServices" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\MotivaServices">
+        <include name="*.svc" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\MotivaServices" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Custom.Server.ConfigurationData\CustomServices">
+        <include name="*.svc" />
+      </fileset>
+    </copy>
+ </target>
+  <!--Copy DataLakeTax Config Files-->
+ <target name="MoveDataLakeTaxConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Delete and copy custom DataDictionary config " /> 
+      <echo message="Delete files path: ${NantOutputPath}\Server${EnvTransform}\ConfigurationData\TaxConfiguration" />  
+     <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\TaxConfiguration">
+        <include name="*.xml" />        
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\TaxConfiguration" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.output}\Server\Server.ConfigurationData\ConfigurationData\TaxConfiguration">
+        <include name="*.xml" />
+      </fileset>
+    </copy>
+ </target>
+   <!--Copy Exchange Pipeline Files-->
+ <target name="MoveExchgPipelines" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework Pipelines }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\ExchangeIntegrationReprocess" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\ExchangeIntegrationReprocess">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\IceTradeCaptureReport" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\IceTradeCaptureReport">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\NymexTradeCaptureReport" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\NymexTradeCaptureReport">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+		<copy todir="${NantOutputPath}\Server${EnvTransform}\Bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Server">
+        <include name="*.xml" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\ServiceServer${EnvTransform}\Bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Server">
+        <include name="*.xml" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\Bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Service">
+        <include name="*.exe" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\Bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Service">
+        <include name="*.config" />
+      </fileset>	
+	<filterchain>
+        <replacestring from="URLaddress/URLvdir" to="${TargetAppServer}${EnvTransform}" ignorecase="true" />
+      </filterchain>
+	</copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\Bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Service">
+        <include name="*.cmd" />
+      </fileset>	
+	<filterchain>
+        <replacestring from="EnvName" to="${EnvName}" ignorecase="true" />
+      </filterchain>
+	</copy>
+	
+ </target>
+  <!--CUSTOM ACCOUNTING FRAMEWORK SPECIFIC FILES::: START-->
+  <!--Copy DataDictionary Config Files-->
+ <target name="MoveActCstmFrmWrkDataDictionaryConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Accounting Framework DataDictionary configs " /> 
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\DataDictionary\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+ <!--Copy Report Config Files-->
+ <target name="MoveActCstmFrmWrkReportConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Accounting Framework Report configs }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Reports\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Reports\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+  <!--Copy Service Files-->
+ <target name="MoveActCstmFrmWrkService" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Accounting Framework Service }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\MotivaServices" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\CustomServices">
+        <include name="*.svc" />
+      </fileset>
+    </copy>
+ </target>
+ 
+   <!--Copy Pipeline Files-->
+ <target name="MoveActCstmFrmWrkPipe" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Accounting Framework Service }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\CustomMessageHandler" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputAcctgFrmeWrk}\Pipelines\CustomMessageHandler">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+    <!--CUSTOM ACCOUNTING FRAMEWORK SPECIFIC FILES::: END-->
+	<!--CUSTOM EXCHANGE FRAMEWORK SPECIFIC FILES::: START-->
+
+  <!--Copy CLIENT DLLs-->
+	<target name="MoveExchgCstmFrmWrkClientDLL" description="move files from exchange folder to client folder">
+     <echo message="Copy Exchange custom client dlls " /> 
+	<copy todir="${NantOutputPath}\Client${EnvTransform}" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Client">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+ </target>
+   <!--Copy SERVER DLLs-->
+ <target name="MoveExchgCstmFrmWrkServerDLL" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy Exchange custom server dlls " /> 
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Server">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\ServiceServer${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\Server">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+ </target>
+ 
+  <!--Copy DataDictionary Config Files-->
+ <target name="MoveExchgCstmFrmWrkDataDictionaryConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework DataDictionary configs " /> 
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\DataDictionary\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\DataDictionary\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+ <!--Copy Report Config Files-->
+ <target name="MoveExchgCstmFrmWrkReportConfig" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework Report configs }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Reports\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Reports">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+
+  <!--Copy Service Files-->
+ <target name="MoveExchgCstmFrmWrkService" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework UserInterface templates}" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\UserInterface\Override" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\UserInterface\Override">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+ 
+   <!--Copy Pipeline Files-->
+ <target name="MoveExchgCstmFrmWrkPipe" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy custom Exchange Framework Pipelines }" />  
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\ExchangeIntegrationReprocess" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\ExchangeIntegrationReprocess">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\IceTradeCaptureReport" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\IceTradeCaptureReport">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\ConfigurationData\Pipelines\NymexTradeCaptureReport" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputExchangeFrmeWrk}\ConfigurationData\Pipelines\NymexTradeCaptureReport">
+        <include name="*.config" />
+      </fileset>
+    </copy>
+ </target>
+    <!--CUSTOM EXCHANGE FRAMEWORK SPECIFIC FILES::: END-->
+	<!--CUSTOM GlobalView FRAMEWORK SPECIFIC FILES::: START-->
+
+  <!--Copy CLIENT DLLs-->
+	<target name="MoveGlobalViewFrmWrkClientDLL" description="move files from exchange folder to client folder">
+     <echo message="Copy Global View custom client dlls " /> 
+	<copy todir="${NantOutputPath}\Client${EnvTransform}" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputGlobalViewFrmeWrk}\Client">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+ </target>
+ 	<target name="MoveGlobalViewFrmWrkServerDLL" description="move files from exchange folder to client folder">
+     <echo message="Copy Global View custom server dlls " /> 
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputGlobalViewFrmeWrk}\Server">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\ServiceServer${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputGlobalViewFrmeWrk}\Server">
+        <include name="*.dll" />
+      </fileset>
+    </copy>
+ </target>
+     <!--CUSTOM GlobalView FRAMEWORK SPECIFIC FILES::: END-->
+	<!--CUSTOM MovementLifeCycle SPECIFIC FILES::: START-->
+
+ <!--Copy SERVER DLLs-->
+ <target name="MovementLifeCycleServerDLL" description="move files from build folder to server/bin folder for development Testing">
+     <echo message="Copy MovementLifeCycle custom server dlls " /> 
+	<copy todir="${NantOutputPath}\Server${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputMovementLifeCycle}">
+        <include name="MTVMovementLifeCycleStagingTask.dll" />
+		<include name="MTVMovementLifeCycleExportTask.dll" />
+      </fileset>
+    </copy>
+	<copy todir="${NantOutputPath}\ServiceServer${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.outputMovementLifeCycle}">
+        <include name="MTVMovementLifeCycleStagingTask.dll" />
+		<include name="MTVMovementLifeCycleExportTask.dll" />
+      </fileset>
+    </copy>
+ </target>	
+ 	<!--CUSTOM MovementLifeCycle SPECIFIC FILES::: END-->
+	
+ <!--Copy Server DLL-->
+ <target name="MoveInterfaceDLL" description="move files from build folder to server/bin folder for development Testing">
+    <delete >
+      <fileset basedir="${NantOutputPath}\Server${EnvTransform}\bin">
+        <include name="${DllIndentifier}.RightAngle.Interfaces.*.dll" />
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\Server${EnvTransform}\bin" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${Interfacebuild.output}\output">
+        <include name="${DllIndentifier}.RightAngle.Interfaces.*.dll" />
+      </fileset>
+    </copy>
+	
+ </target>
+  <!--Copy PB Development-->
+ <target name="MovePowerBuilder" description="move files from build folder to server/bin folder for development Testing">
+    <delete >
+      <fileset basedir="${NantOutputPath}\RightAngleIV">
+        <include name="*.*" />
+      </fileset>
+    </delete>
+    <copy todir="${NantOutputPath}\RightAngleIV" flatten="true" overwrite="true" verbose="false">
+      <fileset basedir="${build.powerbuilder}">
+        <include name="*.*" />
+      </fileset>
+    </copy>
+ </target>
+ 
+ <!--THIS SECTION TELLS THE PRIVATE TARGETS WHAT PUBLIC TARGETS ABOVE IT SHOULD EXECUTE-->
+ <target name="do-build">
+   <!--<echo message="Compiled file source: ${build.output}" />--> 
+   <call target="MoveClientDLL"/>
+   <call target="MoveServerDLL"/>
+   <call target="MoveServiceServerDLL"/>
+   <call target="MoveDataDictionaryConfig"/>
+   <call target="MoveReportConfig"/>
+   <call target="MoveReportView"/>
+   <call target="MoveSystemConfig"/>
+   <call target="MoveUserInterfaceConfig"/>
+   <call target="MovePowerBuilder"/> 
+   <call target="MoveServiceFiles"/> 
+   <call target="MovePipelines"/> 
+   <call target="MoveAllPipelines"/>
+   <call target="MoveDataLakeTaxConfig"/>
+   <call target="MoveExchgPipelines"/>
+   <call target="MoveActCstmFrmWrkDataDictionaryConfig"/>
+   <call target="MoveActCstmFrmWrkReportConfig"/>
+   <call target="MoveActCstmFrmWrkService"/>
+   <call target="MoveActCstmFrmWrkPipe"/>
+   <call target="MoveExchgCstmFrmWrkClientDLL"/>
+   <call target="MoveExchgCstmFrmWrkServerDLL"/>
+   <call target="MoveExchgCstmFrmWrkDataDictionaryConfig"/>
+   <call target="MoveExchgCstmFrmWrkReportConfig"/>
+   <call target="MoveExchgCstmFrmWrkService"/>
+   <call target="MoveExchgCstmFrmWrkPipe"/>
+   <call target="MoveGlobalViewFrmWrkClientDLL"/>
+   <call target="MoveGlobalViewFrmWrkServerDLL"/>
+   <call target="MovementLifeCycleServerDLL"/>
+  </target>
+
+ <target name="DeployInterfaces">
+   <call target="MoveInterfaceDLL"/>   
+ </target>
+
+ <target name="RestartIIS">
+   <call target="MoveInterfaceDLL"/>   
+ </target>
+
+</project>

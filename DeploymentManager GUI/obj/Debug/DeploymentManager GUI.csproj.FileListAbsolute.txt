@@ -1,0 +1,20 @@
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe.config
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csprojResolveAssemblyReference.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Form1.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Properties.Resources.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.GenerateResource.Cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.CoreCompileInputs.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe.config
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csprojResolveAssemblyReference.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Form1.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Properties.Resources.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.GenerateResource.Cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.CoreCompileInputs.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb

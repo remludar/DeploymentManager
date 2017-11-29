@@ -1,9 +1,9 @@
 <project name="YourApp" default="do-build" xmlns="http://nant.sf.net/release/0.85-rc4/nant.xsd">
 <!-- Version settings -->
 
-<property name="EnvName" value="RightAngle.RAUAT2"/> <!-- must match IIS virtual directory name -->
-<property name="NantOutputPath" value="C:\Deploy\Builds\NonSQL\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\"/>
-<property name="TargetAppServer" value="MOTAPPQA13001.MotivaDev.Dev/${EnvName}"/>
+<property name="EnvName" value="RightAngle.15.0.Functional2"/> <!-- must match IIS virtual directory name -->
+<property name="NantOutputPath" value="NonSQL\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\"/>
+<property name="TargetAppServer" value="MOTAPPDEV3001.motivadev.dev/${EnvName}"/>
 <property name="build.output" value="c:\source\RightAngle\Development\Motiva.RightAngle"/>
 <property name="build.powerbuilder" value="c:\source\RightAngle\Development\Motiva.RightAngle.PB"/>
 <property name="build.outputAcctgFrmeWrk" value="c:\source\RightAngle\Development\CustomAccountingFramework\Custom.Server.ConfigurationData"/>

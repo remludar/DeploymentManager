@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,8 +14,8 @@ namespace DeploymentManager
     private static string _targetAppServer = string.Empty;
     private static string _sourcePath = string.Empty;
     private static string _branch = string.Empty;
-    private static string _nonSQLOutputPath = "C:\\Deploy\\Builds\\NonSQL";
-    private static string _sqlOutputPath = "C:\\Deploy\\Builds\\SQL";
+    private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("LocalNonSQLOutputPath"); 
+    private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("LocalSQLOutputPath"); 
     private static string _nantBuildFilePath = "";
     private static string _rootSQLPath = string.Empty;
     private static string _motivaSQLPath = string.Empty;

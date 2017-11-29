@@ -4,3 +4,10 @@ C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\DeploymentManager\DeploymentMa
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\DeploymentManager\DeploymentManager\obj\Debug\DeploymentManager.csproj.CoreCompileInputs.cache
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\DeploymentManager\DeploymentManager\obj\Debug\DeploymentManager.exe
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\DeploymentManager\DeploymentManager\obj\Debug\DeploymentManager.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\bin\Debug\DeploymentManager.exe.config
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\bin\Debug\DeploymentManager.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\bin\Debug\DeploymentManager.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\obj\Debug\DeploymentManager.csprojResolveAssemblyReference.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\obj\Debug\DeploymentManager.csproj.CoreCompileInputs.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\obj\Debug\DeploymentManager.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\obj\Debug\DeploymentManager.pdb
