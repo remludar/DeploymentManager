@@ -11,7 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
-using System.Linq;
+using System.ServiceProcess;
+using static DeploymentManager_GUI.ConnectionManagerDataSection;
 
 namespace DeploymentManager_GUI
 {
@@ -69,7 +70,8 @@ namespace DeploymentManager_GUI
         {
             //Set variables from user selection and run the main deployment
             var selectedEnvironment = gbEnvironment.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked);
-            DeploymentManager.SetEnvironment(selectedEnvironment.Name);
+            var trimmedEnvironmentName = selectedEnvironment.Name.Split(new string[] { "rb" }, StringSplitOptions.None)[1];
+            DeploymentManager.SetEnvironmentInformation(trimmedEnvironmentName);
 
             var selectedBranch = gbBranch.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked);
             DeploymentManager.SetBranch(selectedBranch.Name);
@@ -107,6 +109,34 @@ namespace DeploymentManager_GUI
 
             //Copy the final sql output back to its .NET directory for easy deployment
             File.Copy(sqlDeployFilePath, mostRecentNonSQLDirectory);
+
+            ////Stop appropriate services
+            //ServiceController[] services = ServiceController.GetServices("motappdev4001.motivadev.dev");
+            //foreach (ServiceController service in services)
+            //{
+            //    if (service.DisplayName.Contains("Service Monitor"))
+            //    {
+            //        if (service.DisplayName.Contains("RegressDev"))
+            //        {
+            //            Console.WriteLine(service.DisplayName + "\t" + service.Status);
+            //            service.Stop();
+            //            for (int wait = 0; wait < 1000000; wait++)
+            //            {
+            //                int i = 0;
+            //            }
+            //            Console.WriteLine(service.DisplayName + "\t" + service.Status);
+            //        }
+
+            //    }
+            //}
+
+            //Console.ReadKey();
+
+
+            //Copy code to where it goes
+            //Execute sql script
+            //Start services
+            //Do health check
 
 
         }

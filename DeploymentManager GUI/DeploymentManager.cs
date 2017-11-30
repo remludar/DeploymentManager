@@ -9,16 +9,21 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static DeploymentManager_GUI.ConnectionManagerDataSection;
 
 namespace DeploymentManager_GUI
 {
     static class DeploymentManager
     {
         private static bool ISDEBUG = false;
-        private static string _environment = string.Empty;
+        private static string _targetVirtualDirectory = string.Empty;
         private static string _targetAppServer = string.Empty;
         private static string _sourcePath = string.Empty;
         private static string _branch = string.Empty;
+        private static string _targetSMServer = string.Empty;
+        private static string _targetRAMQServer = string.Empty;
+        private static string _targetSQLServer = string.Empty;
+        private static string _targetDatabase = string.Empty;
         private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
         private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
         private static string _nantBuildFilePath = "";
@@ -81,7 +86,7 @@ namespace DeploymentManager_GUI
             DeploymentManager._rootSQLPath = DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch;
             DeploymentManager._motivaSQLPath = DeploymentManager._rootSQLPath + "\\Motiva.SQL\\Motiva.RightAngle.SQL";
             DeploymentManager._movementLiveCycleSQLPath = DeploymentManager._rootSQLPath + "\\MTVMovementLifeCycle\\SQL";
-            DeploymentManager._buildNumber = "SQL_" + ((IEnumerable<string>)DeploymentManager._environment.Split('.')).Last<string>() + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            DeploymentManager._buildNumber = "SQL_" + ((IEnumerable<string>)DeploymentManager._targetVirtualDirectory.Split('.')).Last<string>() + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
             
             DeploymentManager._CopyRoot();
@@ -94,7 +99,7 @@ namespace DeploymentManager_GUI
         {
             Console.WriteLine("\n**Debug Output**");
             Console.WriteLine("Target App Server: " + DeploymentManager._targetAppServer);
-            Console.WriteLine("Envrionment:" + DeploymentManager._environment);
+            Console.WriteLine("Envrionment:" + DeploymentManager._targetVirtualDirectory);
             Console.WriteLine("Branch: " + DeploymentManager._branch);
             Console.WriteLine("Source Path: " + DeploymentManager._sourcePath);
             Console.ReadKey();
@@ -111,7 +116,7 @@ namespace DeploymentManager_GUI
                     streamWriter.WriteLine("<project name=\"YourApp\" default=\"do-build\" xmlns=\"http://nant.sf.net/release/0.85-rc4/nant.xsd\">");
                     streamWriter.WriteLine("<!-- Version settings -->");
                     streamWriter.WriteLine();
-                    streamWriter.WriteLine("<property name=\"EnvName\" value=\"" + DeploymentManager._environment + "\"/> <!-- must match IIS virtual directory name -->");
+                    streamWriter.WriteLine("<property name=\"EnvName\" value=\"" + DeploymentManager._targetVirtualDirectory + "\"/> <!-- must match IIS virtual directory name -->");
                     streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + DeploymentManager._nonSQLOutputPath + "\\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\\\"/>");
                     streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServer + "/${EnvName}\"/>");
                     streamWriter.WriteLine("<property name=\"build.output\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle\"/>");
@@ -264,62 +269,6 @@ namespace DeploymentManager_GUI
             }
         }
 
-        public static void SetEnvironment(string rbSelection)
-        {
-            switch (rbSelection)
-            {
-                case "rbDataLoadTest":
-                    _targetAppServer = "MOTAPPTST3001.MotivaDev.Dev";
-                    _environment = "RightAngle.DataLoadTest";
-                    break;
-                case "rbFunctional1":
-                    _targetAppServer = "MOTAPPTST3001.MotivaDev.Dev";
-                    _environment = "RightAngle.Functional1";
-                    break;
-                case "rbFunctional2":
-                    _targetAppServer = "MOTAPPDEV3001.motivadev.dev";
-                    _environment = "RightAngle.15.0.Functional2";
-                    break;
-                case "rbProd_Triage":
-                    _targetAppServer = "MOTAPPQA13001.MotivaDev.Dev";
-                    _environment = "RightAngle.15.0.ProdTriage";
-                    break;
-                case "rbRAIVStarterS15":
-                    _targetAppServer = "MOTAPPQA13001.MotivaDev.Dev";
-                    _environment = "RightAngle.Starter";
-                    break;
-                case "rbRedbox":
-                    _targetAppServer = "MOTAPPQA13001.MotivaDev.Dev";
-                    _environment = "RightAngle.Redbox";
-                    break;
-                case "rbRegressDev":
-                    _targetAppServer = "MOTAPPDEV3001.motivadev.dev";
-                    _environment = "RightAngle.15.0.RegressDev";
-                    break;
-                case "rbSandbox":
-                    _targetAppServer = "MOTAPPDEV3001.motivadev.dev";
-                    _environment = "RightAngle.15.0.Sandbox";
-                    break;
-                case "rbTrainingClass":
-                    _targetAppServer = "MOTAPPTST3001.MotivaDev.Dev";
-                    _environment = "RightAngle.15.0.TrainingClass";
-                    break;
-                case "rbTEST":
-                    _targetAppServer = "MOTAPPDEV3001.motivadev.dev";
-                    _environment = "RightAngle.Test";
-                    break;
-                case "rbUAT2":
-                    _targetAppServer = "MOTAPPQA13001.MotivaDev.Dev";
-                    _environment = "RightAngle.RAUAT2";
-                    break;
-                case "rbProduction":
-                    _targetAppServer = "Motiisprdvip5.motiva.prv";
-                    _environment = "RightAngle.Prod";
-                    break;
-
-            }
-        }
-
         public static void SetBranch(string rbSelection)
         {
             switch (rbSelection)
@@ -343,6 +292,25 @@ namespace DeploymentManager_GUI
         public static void SetSourcePath(string btnSourcePathBrowser)
         {
             _sourcePath = btnSourcePathBrowser;
+        }
+
+        public static void SetEnvironmentInformation(string rbSelection)
+        {
+            // Grab the Environments listed in the App.config and add them to our list.
+            var environmentManagerDataSection = ConfigurationManager.GetSection(ConnectionManagerDataSection.SectionName) as ConnectionManagerDataSection;
+            foreach (ConnectionManagerEnvironmentElement environmentElement in environmentManagerDataSection.ConnectionManagerEnvironments)
+            {
+                if(environmentElement.Name == rbSelection)
+                {
+                    _targetAppServer = environmentElement.AppServer;
+                    _targetVirtualDirectory = environmentElement.VirtualDirectory;
+                    _targetSMServer = environmentElement.SMServer;
+                    _targetRAMQServer = environmentElement.RAMQServer;
+                    _targetSQLServer = environmentElement.DatabaseServer;
+                    _targetDatabase = environmentElement.Database;
+                    return;
+                }
+            }
         }
         
     }

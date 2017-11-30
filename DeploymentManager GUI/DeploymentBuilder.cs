@@ -133,12 +133,14 @@ namespace DeploymentManager_GUI
                     }
                     int num1;
                     int num2;
+
                     do
                     {
                         num1 = fileStream1.ReadByte();
                         num2 = fileStream2.ReadByte();
                     }
                     while (num1 == num2 && num2 != -1);
+
                     fileStream1.Close();
                     fileStream2.Close();
                     return num1 - num2 == 0;
