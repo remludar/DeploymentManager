@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
 using System.ServiceProcess;
-using static DeploymentManager_GUI.ConnectionManagerDataSection;
 
 namespace DeploymentManager_GUI
 {
@@ -64,8 +63,6 @@ namespace DeploymentManager_GUI
             backgroundWorker1.RunWorkerAsync();
         }
 
-
-
         private void BackgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             //Set variables from user selection and run the main deployment
@@ -73,42 +70,42 @@ namespace DeploymentManager_GUI
             var trimmedEnvironmentName = selectedEnvironment.Name.Split(new string[] { "rb" }, StringSplitOptions.None)[1];
             DeploymentManager.SetEnvironmentInformation(trimmedEnvironmentName);
 
-            var selectedBranch = gbBranch.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked);
-            DeploymentManager.SetBranch(selectedBranch.Name);
+            //var selectedBranch = gbBranch.Controls.OfType<RadioButton>().FirstOrDefault(r => r.Checked);
+            //DeploymentManager.SetBranch(selectedBranch.Name);
 
-            var sourcePath = gbSourcePath.Controls.OfType<Label>().FirstOrDefault();
-            DeploymentManager.SetSourcePath(sourcePath.Text);
+            //var sourcePath = gbSourcePath.Controls.OfType<Label>().FirstOrDefault();
+            //DeploymentManager.SetSourcePath(sourcePath.Text);
 
-            var progressLabel = lblProgress;
+            //var progressLabel = lblProgress;
 
-            var sqlOutputPath = DeploymentManager.Run(backgroundWorker1, progressLabel);
+            //var sqlOutputPath = DeploymentManager.Run(backgroundWorker1, progressLabel);
 
 
-            //Run what used to be the "Deployment Builder" that compares the 2 sql files
-            var oldSqlPath = gbSqlComparePath.Controls.OfType<Label>().FirstOrDefault();
-            DeploymentBuilder.Run(oldSqlPath.Text, sqlOutputPath);
+            ////Run what used to be the "Deployment Builder" that compares the 2 sql files
+            //var oldSqlPath = gbSqlComparePath.Controls.OfType<Label>().FirstOrDefault();
+            //DeploymentBuilder.Run(oldSqlPath.Text, sqlOutputPath);
 
-            string sqlBuildFilePath = sqlOutputPath + "\\SQLBuild.sql";
-            string baseGrantsFilePath = sqlOutputPath + "\\DB - Database_Grants_20160616.sql";
+            //string sqlBuildFilePath = sqlOutputPath + "\\SQLBuild.sql";
+            //string baseGrantsFilePath = sqlOutputPath + "\\DB - Database_Grants_20160616.sql";
 
-            using (Stream input = File.OpenRead(baseGrantsFilePath))
-            using (Stream output = new FileStream(sqlBuildFilePath, FileMode.Append,
-                                                  FileAccess.Write, FileShare.None))
-            {
-                input.CopyTo(output);
-            }
+            //using (Stream input = File.OpenRead(baseGrantsFilePath))
+            //using (Stream output = new FileStream(sqlBuildFilePath, FileMode.Append,
+            //                                      FileAccess.Write, FileShare.None))
+            //{
+            //    input.CopyTo(output);
+            //}
 
-            string fileName = "\\SQLDeploy_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".sql";
-            string sqlDeployFilePath = sqlOutputPath + fileName;
-            string sqlNonSQLFilePath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
-            var mostRecentNonSQLDirectory = new DirectoryInfo(sqlNonSQLFilePath).GetDirectories()
-                       .OrderByDescending(d => d.LastWriteTimeUtc).First().FullName;
-            mostRecentNonSQLDirectory += fileName;
+            //string fileName = "\\SQLDeploy_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".sql";
+            //string sqlDeployFilePath = sqlOutputPath + fileName;
+            //string sqlNonSQLFilePath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
+            //var mostRecentNonSQLDirectory = new DirectoryInfo(sqlNonSQLFilePath).GetDirectories()
+            //           .OrderByDescending(d => d.LastWriteTimeUtc).First().FullName;
+            //mostRecentNonSQLDirectory += fileName;
 
-            File.Move(sqlBuildFilePath, sqlDeployFilePath);
+            //File.Move(sqlBuildFilePath, sqlDeployFilePath);
 
-            //Copy the final sql output back to its .NET directory for easy deployment
-            File.Copy(sqlDeployFilePath, mostRecentNonSQLDirectory);
+            ////Copy the final sql output back to its .NET directory for easy deployment
+            //File.Copy(sqlDeployFilePath, mostRecentNonSQLDirectory);
 
             ////Stop appropriate services
             //ServiceController[] services = ServiceController.GetServices("motappdev4001.motivadev.dev");

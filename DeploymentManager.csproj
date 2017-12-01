@@ -37,7 +37,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomConfiguration.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />

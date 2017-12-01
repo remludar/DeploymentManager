@@ -279,7 +279,6 @@
             // 
             // rbFunctional2
             // 
-            this.rbFunctional2.AutoCheck = false;
             this.rbFunctional2.AutoSize = true;
             this.rbFunctional2.Location = new System.Drawing.Point(6, 65);
             this.rbFunctional2.Name = "rbFunctional2";
@@ -306,7 +305,6 @@
             this.rbDataLoadTest.Name = "rbDataLoadTest";
             this.rbDataLoadTest.Size = new System.Drawing.Size(93, 17);
             this.rbDataLoadTest.TabIndex = 1;
-            this.rbDataLoadTest.TabStop = true;
             this.rbDataLoadTest.Text = "DataLoadTest";
             this.rbDataLoadTest.UseVisualStyleBackColor = true;
             // 

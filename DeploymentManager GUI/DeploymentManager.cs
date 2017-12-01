@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeploymentManager_GUI.CustomConfig;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -9,23 +10,24 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static DeploymentManager_GUI.ConnectionManagerDataSection;
 
 namespace DeploymentManager_GUI
 {
     static class DeploymentManager
     {
         private static bool ISDEBUG = false;
+
+        private static List<string> _targetAppServer = new List<string>();
+        private static List<string> _targetSMServer = new List<string>();
+        private static List<string> _targetRAMQServer = new List<string>();
         private static string _targetVirtualDirectory = string.Empty;
-        private static string _targetAppServer = string.Empty;
-        private static string _sourcePath = string.Empty;
-        private static string _branch = string.Empty;
-        private static string _targetSMServer = string.Empty;
-        private static string _targetRAMQServer = string.Empty;
         private static string _targetSQLServer = string.Empty;
         private static string _targetDatabase = string.Empty;
+
         private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
         private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
+        private static string _sourcePath = string.Empty;
+        private static string _branch = string.Empty;
         private static string _nantBuildFilePath = "";
         private static string _rootSQLPath = string.Empty;
         private static string _motivaSQLPath = string.Empty;
@@ -296,23 +298,55 @@ namespace DeploymentManager_GUI
 
         public static void SetEnvironmentInformation(string rbSelection)
         {
-            // Grab the Environments listed in the App.config and add them to our list.
-            var environmentManagerDataSection = ConfigurationManager.GetSection(ConnectionManagerDataSection.SectionName) as ConnectionManagerDataSection;
-            foreach (ConnectionManagerEnvironmentElement environmentElement in environmentManagerDataSection.ConnectionManagerEnvironments)
+            //Grab the Environments listed in the App.config and add them to our list.
+            var environmentCollectionSection = ConfigurationManager.GetSection("environmentCollectionSection") as EnvironmentCollectionSection;
+            var environment =  environmentCollectionSection.Members[rbSelection];
+
+
+            foreach (AppServer appServer in environment.AppServers)
             {
-                if(environmentElement.Name == rbSelection)
-                {
-                    _targetAppServer = environmentElement.AppServer;
-                    _targetVirtualDirectory = environmentElement.VirtualDirectory;
-                    _targetSMServer = environmentElement.SMServer;
-                    _targetRAMQServer = environmentElement.RAMQServer;
-                    _targetSQLServer = environmentElement.DatabaseServer;
-                    _targetDatabase = environmentElement.Database;
-                    return;
-                }
+                _targetAppServer.Add(appServer.Name);
             }
+
+            foreach (SMServer smServer in environment.SMServers)
+            {
+                _targetSMServer.Add(smServer.Name);
+            }
+
+            foreach (RAMQServer ramqServer in environment.RAMQServers)
+            {
+                _targetRAMQServer.Add(ramqServer.Name);
+            }
+
+            _targetVirtualDirectory = environment.VirtualDirectory.Name;
+            _targetSQLServer = environment.DBServer.Name;
+            _targetDatabase = environment.DBName.Name;
+
+
+            //Debug
+            string message = "";
+            message += "AppServers\n";
+            foreach (string s in _targetAppServer)
+                message += s + "\n";
+            message += "\nSMServers\n";
+            foreach (string s in _targetSMServer)
+                message += s + "\n";
+            message += "\nRAMQServers\n";
+            foreach (string s in _targetRAMQServer)
+                message += s + "\n";
+            message += "\nVirtualDirectory\n";
+            message += _targetVirtualDirectory;
+            message += "\n\nSQLServer\n";
+            message += _targetSQLServer;
+            message += "\n\nDatabase\n";
+            message += _targetDatabase;
+            MessageBox.Show(message);
+
+            //Debug
         }
-        
+
+
     }
+        
 }
 
