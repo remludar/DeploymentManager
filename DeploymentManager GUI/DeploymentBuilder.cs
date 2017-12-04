@@ -44,8 +44,7 @@ namespace DeploymentManager_GUI
         private static void BuildSQLFile(string sourceDirectory, string compareDirectory, string outputDirectory)
         {
 
-            var createSQLProgressUpdateThread = new Thread(() => DeploymentManager.StartNewProgressUpdateThread("Creating SQL File", 65, 100));
-            createSQLProgressUpdateThread.Start();
+            
 
             DirectoryInfo directory1 = new DirectoryInfo(sourceDirectory);
             DirectoryInfo directoryInfo = new DirectoryInfo(outputDirectory);
@@ -73,7 +72,6 @@ namespace DeploymentManager_GUI
                 sw.Close();
             }
 
-            createSQLProgressUpdateThread.Abort();
         }
 
         private static void BeginOf(StreamWriter sw, string text)

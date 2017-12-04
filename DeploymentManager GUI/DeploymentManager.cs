@@ -3,29 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.ServiceProcess;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.SqlServer.Management.Sdk.Sfc;
+using Microsoft.SqlServer.Management.Smo;
+using Microsoft.SqlServer.Management.Common;
 
 namespace DeploymentManager_GUI
 {
     static class DeploymentManager
     {
-        private static bool ISDEBUG = false;
-
-        private static List<string> _targetAppServer = new List<string>();
-        private static List<string> _targetSMServer = new List<string>();
-        private static List<string> _targetRAMQServer = new List<string>();
+        private static List<string> _targetAppServers = new List<string>();
+        private static List<string> _targetSMServers = new List<string>();
+        private static List<string> _targetRAMQServers = new List<string>();
+        private static string _targetEnvironment = string.Empty;
         private static string _targetVirtualDirectory = string.Empty;
         private static string _targetSQLServer = string.Empty;
         private static string _targetDatabase = string.Empty;
+        private static string _targetDeploymentPath = string.Empty;
 
         private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
         private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
+        private static string _deploymentStagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath");
         private static string _sourcePath = string.Empty;
         private static string _branch = string.Empty;
         private static string _nantBuildFilePath = "";
@@ -34,46 +40,104 @@ namespace DeploymentManager_GUI
         private static string _movementLiveCycleSQLPath = string.Empty;
         private static string _buildNumber = string.Empty;
         private static string _postBuildOutputPath = string.Empty;
-        private static List<string> rootSQLDirectories = new List<string>();
+        private static List<string> _rootSQLDirectories = new List<string>();
         private static Label progressLabel;
+        private static Label _oldSqlPath;
+
         private static BackgroundWorker backgroundWorker;
 
-        public static string Run(BackgroundWorker bgw, Label lbl)
+        public enum ServiceActionType { STOP, START };
+
+        public static void Init(BackgroundWorker bgw, Label progressBarLabel, string branch, Label sqlComparePath, string sourcePath, string environmentName)
         {
             backgroundWorker = bgw;
-            progressLabel = lbl;
+            progressLabel = progressBarLabel;
 
-            DeploymentManager._Init();
-            DeploymentManager._AggregateNonSQL();
-            DeploymentManager._AggregateSQL();
+            #region Set Branch
+            switch (branch)
+            {
+                case "rbDevelopment":
+                    _branch = "Development";
+                    break;
+                case "rbMain":
+                    _branch = "Main";
+                    break;
+                case "rbRelease":
+                    _branch = "Release";
+                    break;
+                case "rbDevGL":
+                    _branch = "Dev-GL";
+                    break;
+            }
+            #endregion
+            #region Set Source
+            // Set source
+            _sourcePath = sourcePath;
+            #endregion
+            #region Set Environment Data from App.Config
+            // Grab the Environments listed in the App.config and add them to our lists.
+            _targetEnvironment = environmentName;
+            _deploymentStagingPath += "\\" + environmentName;
+            _targetDeploymentPath = ConfigurationManager.AppSettings.Get("DeploymentPath") + _targetEnvironment;
+            var environmentCollectionSection = ConfigurationManager.GetSection("environmentCollectionSection") as EnvironmentCollectionSection;
+            var environment = environmentCollectionSection.Members[environmentName];
 
-            if (!DeploymentManager.ISDEBUG)
-                return _sqlOutputPath + "\\" + _buildNumber;
-            DeploymentManager._DebugOutput();
 
-            return _sqlOutputPath + "\\" + _buildNumber;
+            foreach (AppServer appServer in environment.AppServers)
+            {
+                _targetAppServers.Add(appServer.Name);
+            }
+
+            foreach (SMServer smServer in environment.SMServers)
+            {
+                _targetSMServers.Add(smServer.Name);
+            }
+
+            foreach (RAMQServer ramqServer in environment.RAMQServers)
+            {
+                _targetRAMQServers.Add(ramqServer.Name);
+            }
+
+            _targetVirtualDirectory = environment.VirtualDirectory.Name;
+            _targetSQLServer = environment.DBServer.Name;
+            _targetDatabase = environment.DBName.Name;
+            _oldSqlPath = sqlComparePath;
+            #endregion
+            #region Nant Prep
+            // Nant Prep
+            if (!Directory.Exists(_nonSQLOutputPath))
+                Directory.CreateDirectory(_nonSQLOutputPath);
+            if (!Directory.Exists(_sqlOutputPath))
+                Directory.CreateDirectory(_sqlOutputPath);
+            _rootSQLDirectories.Add("\\SeedScripts");
+            _rootSQLDirectories.Add("\\OneOffs");
+            _rootSQLDirectories.Add("\\Tables");
+            _rootSQLDirectories.Add("\\Views");
+            _rootSQLDirectories.Add("\\StoredProcedures");
+            _rootSQLDirectories.Add("\\Functions");
+            _rootSQLDirectories.Add("\\Sequence");
+            _rootSQLDirectories.Add("\\Triggers");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\Tables");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\Functions");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\SeedScripts");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\StoredProcedures");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\Triggers");
+            _rootSQLDirectories.Add("\\CustomAccountingFramework\\Views");
+            #endregion
+
         }
 
-        private static void _Init()
+        public static void Run()
         {
-            if (!Directory.Exists(DeploymentManager._nonSQLOutputPath))
-                Directory.CreateDirectory(DeploymentManager._nonSQLOutputPath);
-            if (!Directory.Exists(DeploymentManager._sqlOutputPath))
-                Directory.CreateDirectory(DeploymentManager._sqlOutputPath);
-            DeploymentManager.rootSQLDirectories.Add("\\SeedScripts");
-            DeploymentManager.rootSQLDirectories.Add("\\OneOffs");
-            DeploymentManager.rootSQLDirectories.Add("\\Tables");
-            DeploymentManager.rootSQLDirectories.Add("\\Views");
-            DeploymentManager.rootSQLDirectories.Add("\\StoredProcedures");
-            DeploymentManager.rootSQLDirectories.Add("\\Functions");
-            DeploymentManager.rootSQLDirectories.Add("\\Sequence");
-            DeploymentManager.rootSQLDirectories.Add("\\Triggers");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\Tables");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\Functions");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\SeedScripts");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\StoredProcedures");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\Triggers");
-            DeploymentManager.rootSQLDirectories.Add("\\CustomAccountingFramework\\Views");
+            _AggregateNonSQL();
+            _AggregateSQL();
+            _RunSQLDeploymentBuilder(_oldSqlPath, _sqlOutputPath + "\\" + _buildNumber);
+            _CopyFilesToDeploymentStaging();
+            _BackupCurrentDeployment();
+            _ManageServices(ServiceActionType.STOP);
+            _Deploy();
+            _ExecuteSql();
+            _ManageServices(ServiceActionType.START);
         }
 
         private static void _AggregateNonSQL()
@@ -82,45 +146,25 @@ namespace DeploymentManager_GUI
             DeploymentManager._nantBuildFilePath = Directory.GetCurrentDirectory();
             DeploymentManager._BuildNantFile();
         }
-
-        private static void _AggregateSQL()
-        {
-            DeploymentManager._rootSQLPath = DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch;
-            DeploymentManager._motivaSQLPath = DeploymentManager._rootSQLPath + "\\Motiva.SQL\\Motiva.RightAngle.SQL";
-            DeploymentManager._movementLiveCycleSQLPath = DeploymentManager._rootSQLPath + "\\MTVMovementLifeCycle\\SQL";
-            DeploymentManager._buildNumber = "SQL_" + ((IEnumerable<string>)DeploymentManager._targetVirtualDirectory.Split('.')).Last<string>() + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            
-            DeploymentManager._CopyRoot();
-            DeploymentManager._CopyMovementLifeCycle();
-            DeploymentManager._CopyAdditionalScripts();
-            DeploymentManager._CombineGrantScripts();
-        }
-
-        private static void _DebugOutput()
-        {
-            Console.WriteLine("\n**Debug Output**");
-            Console.WriteLine("Target App Server: " + DeploymentManager._targetAppServer);
-            Console.WriteLine("Envrionment:" + DeploymentManager._targetVirtualDirectory);
-            Console.WriteLine("Branch: " + DeploymentManager._branch);
-            Console.WriteLine("Source Path: " + DeploymentManager._sourcePath);
-            Console.ReadKey();
-        }
-
         private static void _BuildNantFile()
         {
+            var nantStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Running Nant", 0, 10));
+            nantStatusUpdateThread.Start();
+
             string tempFileName = Path.GetTempFileName();
             string path = "DeploymentNantBuildTemplate.build";
             using (StreamWriter streamWriter = new StreamWriter(tempFileName))
             {
                 using (StreamReader streamReader = new StreamReader(path))
                 {
+                    _nonSQLOutputPath += "\\" + DeploymentManager._targetVirtualDirectory + "-" + DateTime.Now.ToString("yyyyMMdd-HHmm");
                     streamWriter.WriteLine("<project name=\"YourApp\" default=\"do-build\" xmlns=\"http://nant.sf.net/release/0.85-rc4/nant.xsd\">");
                     streamWriter.WriteLine("<!-- Version settings -->");
                     streamWriter.WriteLine();
                     streamWriter.WriteLine("<property name=\"EnvName\" value=\"" + DeploymentManager._targetVirtualDirectory + "\"/> <!-- must match IIS virtual directory name -->");
-                    streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + DeploymentManager._nonSQLOutputPath + "\\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\\\"/>");
-                    streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServer + "/${EnvName}\"/>");
+                    //streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + DeploymentManager._nonSQLOutputPath + "\\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\\\"/>");
+                    streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + _nonSQLOutputPath + "\\\"/>");
+                    streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServers + "/${EnvName}\"/>");
                     streamWriter.WriteLine("<property name=\"build.output\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle\"/>");
                     streamWriter.WriteLine("<property name=\"build.powerbuilder\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle.PB\"/>");
                     streamWriter.WriteLine("<property name=\"build.outputAcctgFrmeWrk\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\CustomAccountingFramework\\Custom.Server.ConfigurationData\"/>");
@@ -137,21 +181,31 @@ namespace DeploymentManager_GUI
             string str = "\"c:\\Program Files (x86)\\Nant\\bin\\NAnt.exe\" /f:\"" + Directory.GetCurrentDirectory() + "\\DeploymentNantBuild.build\"";
             var nantProcess = Process.Start("\"C:\\Program Files (x86)\\Nant\\bin\\NAnt.exe\"", "/f:\"" + Directory.GetCurrentDirectory() + "\\DeploymentNantBuild.build\"");
 
-            var nantStatusUpdateThread  = new Thread(() => StartNewProgressUpdateThread("Running Nant", 0, 25));
-            nantStatusUpdateThread.Start();
-
-            while (nantStatusUpdateThread.IsAlive) { }
+            while (!nantProcess.HasExited) { }
+            nantStatusUpdateThread.Abort();
             File.Delete(tempFileName);
         }
+        private static void _AggregateSQL()
+        {
+            DeploymentManager._rootSQLPath = DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch;
+            DeploymentManager._motivaSQLPath = DeploymentManager._rootSQLPath + "\\Motiva.SQL\\Motiva.RightAngle.SQL";
+            DeploymentManager._movementLiveCycleSQLPath = DeploymentManager._rootSQLPath + "\\MTVMovementLifeCycle\\SQL";
+            DeploymentManager._buildNumber = "SQL_" + ((IEnumerable<string>)DeploymentManager._targetVirtualDirectory.Split('.')).Last<string>() + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
+            
+            DeploymentManager._CopyRoot();
+            DeploymentManager._CopyMovementLifeCycle();
+            DeploymentManager._CopyAdditionalScripts();
+            DeploymentManager._CombineGrantScripts();
+        }
         private static void _CopyRoot()
         {
-            var copyRootUpdateThread = new Thread(() => StartNewProgressUpdateThread("Copying Root", 25, 50));
+            var copyRootUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Root", 10, 20));
             copyRootUpdateThread.Start();
 
             DeploymentManager._postBuildOutputPath = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\PostBuild";
             Directory.CreateDirectory(DeploymentManager._postBuildOutputPath);
-            foreach (string rootSqlDirectory in DeploymentManager.rootSQLDirectories)
+            foreach (string rootSqlDirectory in DeploymentManager._rootSQLDirectories)
             {
                 string str1 = rootSqlDirectory;
                 if (rootSqlDirectory == "\\OneOffs")
@@ -193,10 +247,9 @@ namespace DeploymentManager_GUI
 
             copyRootUpdateThread.Abort();
         }
-
         private static void _CopyMovementLifeCycle()
         {
-            var copyMovementLifeCycleProgressUpdateThread = new Thread(() => StartNewProgressUpdateThread("Combining Movement LifeCycle", 50, 51));
+            var copyMovementLifeCycleProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Movement LifeCycle", 20, 25));
             copyMovementLifeCycleProgressUpdateThread.Start();
 
             string str1 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\";
@@ -221,10 +274,9 @@ namespace DeploymentManager_GUI
 
             copyMovementLifeCycleProgressUpdateThread.Abort();
         }
-
         private static void _CopyAdditionalScripts()
         {
-            var copyAdditionalScriptsProgressUpdateThread = new Thread(() => StartNewProgressUpdateThread("Copying Additional Scripts", 51, 52));
+            var copyAdditionalScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Additional Scripts", 25, 30));
             copyAdditionalScriptsProgressUpdateThread.Start();
 
             string path1_1 = "GrantScript";
@@ -235,10 +287,9 @@ namespace DeploymentManager_GUI
 
             copyAdditionalScriptsProgressUpdateThread.Abort();
         }
-
         private static void _CombineGrantScripts()
         {
-            var combineGrantScriptsProgressUpdateThread = new Thread(() => StartNewProgressUpdateThread("Combining Grant Scripts", 52, 65));
+            var combineGrantScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Grant Scripts", 30, 35));
             combineGrantScriptsProgressUpdateThread.Start();
 
             string[] files = Directory.GetFiles(DeploymentManager._postBuildOutputPath);
@@ -253,15 +304,316 @@ namespace DeploymentManager_GUI
 
             combineGrantScriptsProgressUpdateThread.Abort();
         }
+        private static void _RunSQLDeploymentBuilder(Label oldSqlPath, string sqlOutputPath)
+        {
+            var createSQLProgressUpdateThread = new Thread(() => DeploymentManager._StartNewProgressUpdateThread("Creating SQL File", 35, 50));
+            createSQLProgressUpdateThread.Start();
 
-        private static void UpdateLabel(string text)
+            //Run what used to be the "Deployment Builder" that compares the 2 sql files
+            DeploymentBuilder.Run(oldSqlPath.Text, sqlOutputPath);
+
+            string sqlBuildFilePath = sqlOutputPath + "\\SQLBuild.sql";
+            string baseGrantsFilePath = sqlOutputPath + "\\DB - Database_Grants_20160616.sql";
+
+            using (Stream input = File.OpenRead(baseGrantsFilePath))
+            using (Stream output = new FileStream(sqlBuildFilePath, FileMode.Append,
+                                                  FileAccess.Write, FileShare.None))
+            {
+                input.CopyTo(output);
+            }
+
+            string fileName = "\\SQLDeploy_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".sql";
+            string sqlDeployFilePath = sqlOutputPath + fileName;
+            string sqlNonSQLFilePath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
+            var mostRecentNonSQLDirectory = new DirectoryInfo(sqlNonSQLFilePath).GetDirectories()
+                       .OrderByDescending(d => d.LastWriteTimeUtc).First().FullName;
+            mostRecentNonSQLDirectory += fileName;
+
+            File.Move(sqlBuildFilePath, sqlDeployFilePath);
+
+            //Copy the final sql output back to its .NET directory for easy deployment
+            File.Copy(sqlDeployFilePath, mostRecentNonSQLDirectory);
+
+            createSQLProgressUpdateThread.Abort();
+
+        }
+        private static void _CopyFilesToDeploymentStaging()
+        {
+            var copyToStagingStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Staging", 50, 65));
+            copyToStagingStatusUpdateThread.Start();
+
+            //Create all of the directories
+            string destinationPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment;
+            foreach (string dirPath in Directory.GetDirectories(_nonSQLOutputPath, "*", SearchOption.AllDirectories))
+                Directory.CreateDirectory(dirPath.Replace(_nonSQLOutputPath, destinationPath));
+
+            //Delete the sql file
+            foreach (string newPath in Directory.GetFiles(destinationPath, "*sql", SearchOption.TopDirectoryOnly))
+                File.Delete(newPath);
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(_nonSQLOutputPath, "*.*", SearchOption.AllDirectories))
+                File.Copy(newPath, newPath.Replace(_nonSQLOutputPath, destinationPath), true);
+
+            copyToStagingStatusUpdateThread.Abort();
+        }
+        private static void _ManageServices(ServiceActionType type)
+        {
+            int min = (type == ServiceActionType.STOP) ? 65 : 95;
+            int max = (type == ServiceActionType.STOP) ? 70 : 100;
+            var manageServicesStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Setting services to " + type, min, max));
+            manageServicesStatusUpdateThread.Start();
+
+            //iis
+            foreach (string serverName in _targetAppServers)
+            {
+                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                foreach (ServiceController service in appServerServices)
+                {
+                    if (service.DisplayName.Contains(_targetEnvironment))
+                    {
+                        if (type == ServiceActionType.STOP && service.CanStop)
+                        {
+                            service.Stop();
+                        }
+                        else if (type == ServiceActionType.START)
+                        {
+                            service.WaitForStatus(ServiceControllerStatus.Stopped);
+                            service.Start();
+                        }
+
+                    }
+                }
+            }
+
+            //sm
+            foreach (string serverName in _targetSMServers)
+            {
+                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                foreach (ServiceController service in appServerServices)
+                {
+                    if (service.DisplayName.Contains("Service Monitor"))
+                    {
+                        if (service.DisplayName.Contains(_targetEnvironment))
+                        {
+                            if (type == ServiceActionType.STOP && service.CanStop)
+                            {
+                                service.Stop();
+                            }
+                            else if (type == ServiceActionType.START)
+                            {
+                                service.WaitForStatus(ServiceControllerStatus.Stopped);
+                                service.Start();
+                            }
+                        }
+                    }
+                }
+            }
+
+            //ramq
+            foreach (string serverName in _targetRAMQServers)
+            {
+                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                foreach (ServiceController service in appServerServices)
+                {
+                    if (service.DisplayName.Contains("RAMQ"))
+                    {
+                        if (service.DisplayName.Contains(_targetEnvironment))
+                        {
+                            if (type == ServiceActionType.STOP && service.CanStop)
+                            {
+                                service.Stop();
+                            }
+                            else if (type == ServiceActionType.START)
+                            {
+                                service.WaitForStatus(ServiceControllerStatus.Stopped);
+                                service.Start();
+                            }
+                        }
+                    }
+                }
+            }
+            manageServicesStatusUpdateThread.Abort();
+        }
+        private static void _BackupCurrentDeployment()
+        {
+            var backupStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Backing up current deployments", 75, 85));
+            backupStatusUpdateThread.Start();
+
+            var backupPathRoot = ConfigurationManager.AppSettings.Get("BackupPath");
+            var timeStamp = DateTime.Now.ToString("yyyymmddThhmmss");
+
+            foreach (string server in _targetAppServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\Server";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        if (newPath.Contains("Scraps") ||
+                            newPath.Contains("ReportViews") ||
+                            newPath.Length >= 260)
+                            continue;
+                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
+                    }
+                }
+            }
+
+            foreach (string server in _targetSMServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\Server";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        if (newPath.Length > 260)
+                            continue;
+                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
+                    }
+                }
+            }
+
+            foreach (string server in _targetRAMQServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\RightAngleIV";
+                var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\RightAngleIV";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        if (newPath.Length > 260)
+                            continue;
+                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
+                    }
+                }
+            }
+            backupStatusUpdateThread.Abort();
+        }
+        private static void _Deploy()
+        {
+            var deployStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Deploying app, sm, and ramq", 85, 95));
+            deployStatusUpdateThread.Start();
+
+            foreach (string server in _targetAppServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\Server";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                    }
+                }
+            }
+
+            foreach (string server in _targetSMServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\serviceServer";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                    }
+                }
+            }
+
+            foreach (string server in _targetRAMQServers)
+            {
+                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\RightAngleIV";
+                var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\RightAngleIV";
+
+                //Create all of the directories
+                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
+                if (directories.Count() > 0)
+                {
+                    foreach (string dirPath in directories)
+                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
+
+                    //Copy all the files & Replaces any files with the same name
+                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        //TODO: Need a better solution for this
+                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                    }
+                }
+            }
+            deployStatusUpdateThread.Abort();
+        }
+        private static void _ExecuteSql()
+        {
+            var executeSqlUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Executing SQL", 95, 100));
+            executeSqlUpdateThread.Start();
+
+            var connectionString = "Persist Security Info=False;Integrated Security=true;Initial Catalog=" + _targetDatabase + ";server=" + _targetSQLServer;
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                Server db = new Server(new ServerConnection(conn));
+
+                var sqlFileName = Directory.GetFiles(_deploymentStagingPath, "*sql", SearchOption.TopDirectoryOnly).First();
+
+                string data = File.ReadAllText(sqlFileName);
+
+                db.ConnectionContext.ExecuteNonQuery(data);
+            }
+
+
+
+            executeSqlUpdateThread.Abort();
+        }
+
+        //Helpers
+        private static void _UpdateProgressLabel(string text)
         {
             progressLabel.Invoke((Action)delegate { progressLabel.Text = text; });
         }
-
-        public static void StartNewProgressUpdateThread(string text, int min, int max)
+        private static void _StartNewProgressUpdateThread(string text, int min, int max)
         {
-            UpdateLabel(text);
+            _UpdateProgressLabel(text);
             Thread.CurrentThread.IsBackground = true;
             int progress = min;
             while (progress < max)
@@ -270,83 +622,6 @@ namespace DeploymentManager_GUI
                 backgroundWorker.ReportProgress(progress++);
             }
         }
-
-        public static void SetBranch(string rbSelection)
-        {
-            switch (rbSelection)
-            {
-                case "rbDevelopment":
-                    _branch = "Development";
-                    break;
-                case "rbMain":
-                    _branch = "Main";
-                    break;
-                case "rbRelease":
-                    _branch = "Release";
-                    break;
-                case "rbDevGL":
-                    _branch = "Dev-GL";
-                    break;
-
-            }
-        }
-
-        public static void SetSourcePath(string btnSourcePathBrowser)
-        {
-            _sourcePath = btnSourcePathBrowser;
-        }
-
-        public static void SetEnvironmentInformation(string rbSelection)
-        {
-            //Grab the Environments listed in the App.config and add them to our list.
-            var environmentCollectionSection = ConfigurationManager.GetSection("environmentCollectionSection") as EnvironmentCollectionSection;
-            var environment =  environmentCollectionSection.Members[rbSelection];
-
-
-            foreach (AppServer appServer in environment.AppServers)
-            {
-                _targetAppServer.Add(appServer.Name);
-            }
-
-            foreach (SMServer smServer in environment.SMServers)
-            {
-                _targetSMServer.Add(smServer.Name);
-            }
-
-            foreach (RAMQServer ramqServer in environment.RAMQServers)
-            {
-                _targetRAMQServer.Add(ramqServer.Name);
-            }
-
-            _targetVirtualDirectory = environment.VirtualDirectory.Name;
-            _targetSQLServer = environment.DBServer.Name;
-            _targetDatabase = environment.DBName.Name;
-
-
-            //Debug
-            string message = "";
-            message += "AppServers\n";
-            foreach (string s in _targetAppServer)
-                message += s + "\n";
-            message += "\nSMServers\n";
-            foreach (string s in _targetSMServer)
-                message += s + "\n";
-            message += "\nRAMQServers\n";
-            foreach (string s in _targetRAMQServer)
-                message += s + "\n";
-            message += "\nVirtualDirectory\n";
-            message += _targetVirtualDirectory;
-            message += "\n\nSQLServer\n";
-            message += _targetSQLServer;
-            message += "\n\nDatabase\n";
-            message += _targetDatabase;
-            MessageBox.Show(message);
-
-            //Debug
-        }
-
-
     }
-        
 }
 

@@ -2,8 +2,8 @@
 <!-- Version settings -->
 
 <property name="EnvName" value="RightAngle.15.0.RegressDev"/> <!-- must match IIS virtual directory name -->
-<property name="NantOutputPath" value="\\10.58.40.18\deployment\Builds\NonSQL\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\"/>
-<property name="TargetAppServer" value="MOTAPPDEV3001.motivadev.dev/${EnvName}"/>
+<property name="NantOutputPath" value="\\10.58.40.18\deployment\Builds\NonSQL\RightAngle.15.0.RegressDev-20171204-1254\"/>
+<property name="TargetAppServer" value="System.Collections.Generic.List`1[System.String]/${EnvName}"/>
 <property name="build.output" value="C:\Source\RightAngle\Development\Motiva.RightAngle"/>
 <property name="build.powerbuilder" value="C:\Source\RightAngle\Development\Motiva.RightAngle.PB"/>
 <property name="build.outputAcctgFrmeWrk" value="C:\Source\RightAngle\Development\CustomAccountingFramework\Custom.Server.ConfigurationData"/>
