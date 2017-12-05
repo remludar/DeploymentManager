@@ -7,3 +7,11 @@ C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\Deplo
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.csproj.CoreCompileInputs.cache
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.exe
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.pdb
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\bin\Debug\DeploymentBuilder.exe
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\bin\Debug\DeploymentBuilder.pdb
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.csprojResolveAssemblyReference.cache
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.DeploymentBuilderForm.resources
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.Properties.Resources.resources
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.csproj.GenerateResource.Cache
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.exe
+C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentBuilder\DeploymentBuilder\obj\Debug\DeploymentBuilder.pdb

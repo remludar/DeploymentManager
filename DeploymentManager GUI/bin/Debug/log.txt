@@ -1,0 +1,59 @@
+-------------------------------------------------------------------------------
+-Deployment Manager Started
+-------------------------------------------------------------------------------
+20171205_151217 | MESSAGE | _Init                          | _Init started.
+20171205_151217 | MESSAGE | _AggregateNonSQL               | AggregateNonSQL started.
+20171205_151217 | MESSAGE | _BuildNantFile                 | _BuildNantFile started.
+20171205_151217 | MESSAGE | _BuildNantFile                 | Nant.exe Process started.
+20171205_151638 | MESSAGE | _AggregateSQL                  | _AggregateSQL started.
+20171205_151638 | MESSAGE | _CopyRoot                      | _CopyRoot started.
+20171205_151945 | MESSAGE | _CopyMovementLifeCycle         | _CopyMovementLifeCycle started.
+20171205_152020 | MESSAGE | _RunSQLDeploymentBuilder       | _RunSQLDeploymentBuilder started.
+20171205_152535 | MESSAGE | _CopyFilesToDeploymentStaging  | _CopyFilesToDeploymentStaging started.
+20171205_152836 | MESSAGE | _BackupCurrentDeployment       | _BackupCurrentDeployment started.
+20171205_154040 | MESSAGE | _ManageServices                | Setting services to STOP
+20171205_154147 | MESSAGE | _Deploy                        | _Deploy started.
+20171205_154531 | MESSAGE | _ExecuteSql                    | _ExecuteSql started.
+20171205_154557 | MESSAGE | _ManageServices                | Setting services to START
+20171205_154607 | ERROR   | _ManageServices                | Message: Value of '101' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154607 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154607 | ERROR   | _ManageServices                | Message: Value of '101' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154607 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154612 | ERROR   | _ManageServices                | Message: Value of '102' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154612 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154612 | ERROR   | _ManageServices                | Message: Value of '102' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154612 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154617 | ERROR   | _ManageServices                | Message: Value of '103' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154617 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154617 | ERROR   | _ManageServices                | Message: Value of '103' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154617 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154622 | ERROR   | _ManageServices                | Message: Value of '104' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154622 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154622 | ERROR   | _ManageServices                | Message: Value of '104' is not valid for 'Value'. 'Value' should be between 'minimum' and 'maximum'.
+Parameter name: Value
+20171205_154622 | ERROR   | _ManageServices                | Stack Trace:    at System.Windows.Forms.ProgressBar.set_Value(Int32 value)
+   at DeploymentManager_GUI.DynamicForm._bgWorker_ProgressChanged(Object sender, ProgressChangedEventArgs e) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DynamicForm.cs:line 273
+20171205_154634 | ERROR   | _ManageServices                | Message: Cannot start service SRAMQSVC13 on computer 'MOTAPPDEV2001.motivadev.dev'.
+20171205_154634 | ERROR   | _ManageServices                | Stack Trace:    at System.ServiceProcess.ServiceController.Start(String[] args)
+   at System.ServiceProcess.ServiceController.Start()
+   at DeploymentManager_GUI.DeploymentManager._ManageServices(_ServiceActionType type) in C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\DeploymentManager.cs:line 524
+-------------------------------------------------------------------------------
+-Deployment Manager Ended
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-Deployment Manager Ended
+-------------------------------------------------------------------------------

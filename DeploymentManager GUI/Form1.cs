@@ -26,11 +26,6 @@ namespace DeploymentManager_GUI
 
         }
 
-        private void radioButton11_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void btnSqlFileBrowser_Click(object sender, EventArgs e)
         {
             fbdSourceFolderBrowser.SelectedPath = @"\\10.58.40.18\deployment\Builds\SQL\";
@@ -72,13 +67,21 @@ namespace DeploymentManager_GUI
             var sqlComparePath = gbSqlComparePath.Controls.OfType<Label>().FirstOrDefault();
             var sourcePath = gbSourcePath.Controls.OfType<Label>().FirstOrDefault().Text;
 
-            DeploymentManager.Init(backgroundWorker1, progressLabel, selectedBranch, sqlComparePath, sourcePath, trimmedEnvironmentName);
+            DeploymentManager.Init(backgroundWorker1, progressLabel, selectedBranch, sqlComparePath.Text, sourcePath, trimmedEnvironmentName);
             DeploymentManager.Run();
         }
 
         private void BackgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            pbProgressBar.Value = e.ProgressPercentage;
+            try
+            {
+                pbProgressBar.Value = e.ProgressPercentage;
+            }
+            catch(Exception ex)
+            {
+                DeploymentManager.Log("_ManageServices", DeploymentManager.LogEventType.ERROR, "Message: " + ex.Message);
+                DeploymentManager.Log("_ManageServices", DeploymentManager.LogEventType.ERROR, "Stack Trace: " + ex.StackTrace);
+            }
         }
 
         private void BackgroundWorker1_RunWorkerCompleted1(object sender, RunWorkerCompletedEventArgs e)

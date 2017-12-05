@@ -20,52 +20,58 @@ namespace DeploymentManager_GUI
 {
     static class DeploymentManager
     {
+        private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
+        private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
+        private static string _deploymentStagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath");
+
         private static List<string> _targetAppServers = new List<string>();
         private static List<string> _targetSMServers = new List<string>();
         private static List<string> _targetRAMQServers = new List<string>();
+        private static List<string> _rootSQLDirectories = new List<string>();
+
         private static string _targetEnvironment = string.Empty;
         private static string _targetVirtualDirectory = string.Empty;
         private static string _targetSQLServer = string.Empty;
         private static string _targetDatabase = string.Empty;
         private static string _targetDeploymentPath = string.Empty;
-
-        private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
-        private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
-        private static string _deploymentStagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath");
+        private static string _oldSqlPath = string.Empty;
         private static string _sourcePath = string.Empty;
         private static string _branch = string.Empty;
-        private static string _nantBuildFilePath = "";
+        private static string _nantBuildFilePath = string.Empty;
         private static string _rootSQLPath = string.Empty;
         private static string _motivaSQLPath = string.Empty;
         private static string _movementLiveCycleSQLPath = string.Empty;
         private static string _buildNumber = string.Empty;
         private static string _postBuildOutputPath = string.Empty;
-        private static List<string> _rootSQLDirectories = new List<string>();
-        private static Label progressLabel;
-        private static Label _oldSqlPath;
+        private static int _progressCounter = 0;
 
+        private static Label progressLabel;
         private static BackgroundWorker backgroundWorker;
 
-        public enum ServiceActionType { STOP, START };
+        private enum _ServiceActionType { STOP, START };
+        public enum LogEventType { MESSAGE, WARNING, ERROR };
 
-        public static void Init(BackgroundWorker bgw, Label progressBarLabel, string branch, Label sqlComparePath, string sourcePath, string environmentName)
+        public static void Init(BackgroundWorker bgw, Label progressBarLabel, string branch, string sqlComparePath, string sourcePath, string environmentName)
         {
+            _LogHeader();
+            Log("_Init", LogEventType.MESSAGE, "_Init started.");
+
             backgroundWorker = bgw;
             progressLabel = progressBarLabel;
 
             #region Set Branch
             switch (branch)
             {
-                case "rbDevelopment":
+                case "Development":
                     _branch = "Development";
                     break;
-                case "rbMain":
+                case "Main":
                     _branch = "Main";
                     break;
-                case "rbRelease":
+                case "Release":
                     _branch = "Release";
                     break;
-                case "rbDevGL":
+                case "DevGL":
                     _branch = "Dev-GL";
                     break;
             }
@@ -134,21 +140,24 @@ namespace DeploymentManager_GUI
             _RunSQLDeploymentBuilder(_oldSqlPath, _sqlOutputPath + "\\" + _buildNumber);
             _CopyFilesToDeploymentStaging();
             _BackupCurrentDeployment();
-            _ManageServices(ServiceActionType.STOP);
+            _ManageServices(_ServiceActionType.STOP);
             _Deploy();
             _ExecuteSql();
-            _ManageServices(ServiceActionType.START);
+            _ManageServices(_ServiceActionType.START);
+            LogFooter();
         }
 
         private static void _AggregateNonSQL()
         {
+            Log("_AggregateNonSQL", LogEventType.MESSAGE, "AggregateNonSQL started.");
             Directory.CreateDirectory(DeploymentManager._nonSQLOutputPath);
             DeploymentManager._nantBuildFilePath = Directory.GetCurrentDirectory();
             DeploymentManager._BuildNantFile();
         }
         private static void _BuildNantFile()
         {
-            var nantStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Running Nant", 0, 10));
+            Log("_BuildNantFile", LogEventType.MESSAGE, "_BuildNantFile started.");
+            var nantStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Running Nant", _progressCounter, _progressCounter += 10));
             nantStatusUpdateThread.Start();
 
             string tempFileName = Path.GetTempFileName();
@@ -162,9 +171,8 @@ namespace DeploymentManager_GUI
                     streamWriter.WriteLine("<!-- Version settings -->");
                     streamWriter.WriteLine();
                     streamWriter.WriteLine("<property name=\"EnvName\" value=\"" + DeploymentManager._targetVirtualDirectory + "\"/> <!-- must match IIS virtual directory name -->");
-                    //streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + DeploymentManager._nonSQLOutputPath + "\\${EnvName}-${datetime::format-to-string(datetime::now(), 'yyyyMMdd-HHmm')}\\\"/>");
                     streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + _nonSQLOutputPath + "\\\"/>");
-                    streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServers + "/${EnvName}\"/>");
+                    streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServers[0] + "/${EnvName}\"/>");
                     streamWriter.WriteLine("<property name=\"build.output\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle\"/>");
                     streamWriter.WriteLine("<property name=\"build.powerbuilder\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle.PB\"/>");
                     streamWriter.WriteLine("<property name=\"build.outputAcctgFrmeWrk\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\CustomAccountingFramework\\Custom.Server.ConfigurationData\"/>");
@@ -178,7 +186,7 @@ namespace DeploymentManager_GUI
             }
             string destFileName = "DeploymentNantBuild.build";
             File.Copy(tempFileName, destFileName, true);
-            string str = "\"c:\\Program Files (x86)\\Nant\\bin\\NAnt.exe\" /f:\"" + Directory.GetCurrentDirectory() + "\\DeploymentNantBuild.build\"";
+            Log("_BuildNantFile", LogEventType.MESSAGE, "Nant.exe Process started.");
             var nantProcess = Process.Start("\"C:\\Program Files (x86)\\Nant\\bin\\NAnt.exe\"", "/f:\"" + Directory.GetCurrentDirectory() + "\\DeploymentNantBuild.build\"");
 
             while (!nantProcess.HasExited) { }
@@ -187,6 +195,7 @@ namespace DeploymentManager_GUI
         }
         private static void _AggregateSQL()
         {
+            Log("_AggregateSQL", LogEventType.MESSAGE, "_AggregateSQL started.");
             DeploymentManager._rootSQLPath = DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch;
             DeploymentManager._motivaSQLPath = DeploymentManager._rootSQLPath + "\\Motiva.SQL\\Motiva.RightAngle.SQL";
             DeploymentManager._movementLiveCycleSQLPath = DeploymentManager._rootSQLPath + "\\MTVMovementLifeCycle\\SQL";
@@ -200,7 +209,8 @@ namespace DeploymentManager_GUI
         }
         private static void _CopyRoot()
         {
-            var copyRootUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Root", 10, 20));
+            Log("_CopyRoot", LogEventType.MESSAGE, "_CopyRoot started.");
+            var copyRootUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Root", _progressCounter, _progressCounter += 10));
             copyRootUpdateThread.Start();
 
             DeploymentManager._postBuildOutputPath = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\PostBuild";
@@ -249,7 +259,8 @@ namespace DeploymentManager_GUI
         }
         private static void _CopyMovementLifeCycle()
         {
-            var copyMovementLifeCycleProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Movement LifeCycle", 20, 25));
+            Log("_CopyMovementLifeCycle", LogEventType.MESSAGE, "_CopyMovementLifeCycle started.");
+            var copyMovementLifeCycleProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Movement LifeCycle", _progressCounter, _progressCounter += 5));
             copyMovementLifeCycleProgressUpdateThread.Start();
 
             string str1 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\";
@@ -276,7 +287,7 @@ namespace DeploymentManager_GUI
         }
         private static void _CopyAdditionalScripts()
         {
-            var copyAdditionalScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Additional Scripts", 25, 30));
+            var copyAdditionalScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Additional Scripts", _progressCounter, _progressCounter += 5));
             copyAdditionalScriptsProgressUpdateThread.Start();
 
             string path1_1 = "GrantScript";
@@ -289,7 +300,7 @@ namespace DeploymentManager_GUI
         }
         private static void _CombineGrantScripts()
         {
-            var combineGrantScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Grant Scripts", 30, 35));
+            var combineGrantScriptsProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Grant Scripts", _progressCounter, _progressCounter += 5));
             combineGrantScriptsProgressUpdateThread.Start();
 
             string[] files = Directory.GetFiles(DeploymentManager._postBuildOutputPath);
@@ -304,13 +315,14 @@ namespace DeploymentManager_GUI
 
             combineGrantScriptsProgressUpdateThread.Abort();
         }
-        private static void _RunSQLDeploymentBuilder(Label oldSqlPath, string sqlOutputPath)
+        private static void _RunSQLDeploymentBuilder(string oldSqlPath, string sqlOutputPath)
         {
-            var createSQLProgressUpdateThread = new Thread(() => DeploymentManager._StartNewProgressUpdateThread("Creating SQL File", 35, 50));
+            Log("_RunSQLDeploymentBuilder", LogEventType.MESSAGE, "_RunSQLDeploymentBuilder started.");
+            var createSQLProgressUpdateThread = new Thread(() => DeploymentManager._StartNewProgressUpdateThread("Creating SQL File", _progressCounter, _progressCounter += 15));
             createSQLProgressUpdateThread.Start();
 
             //Run what used to be the "Deployment Builder" that compares the 2 sql files
-            DeploymentBuilder.Run(oldSqlPath.Text, sqlOutputPath);
+            DeploymentBuilder.Run(oldSqlPath, sqlOutputPath);
 
             string sqlBuildFilePath = sqlOutputPath + "\\SQLBuild.sql";
             string baseGrantsFilePath = sqlOutputPath + "\\DB - Database_Grants_20160616.sql";
@@ -339,7 +351,8 @@ namespace DeploymentManager_GUI
         }
         private static void _CopyFilesToDeploymentStaging()
         {
-            var copyToStagingStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Staging", 50, 65));
+            Log("_CopyFilesToDeploymentStaging", LogEventType.MESSAGE, "_CopyFilesToDeploymentStaging started.");
+            var copyToStagingStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Staging", _progressCounter, _progressCounter += 15));
             copyToStagingStatusUpdateThread.Start();
 
             //Create all of the directories
@@ -357,87 +370,10 @@ namespace DeploymentManager_GUI
 
             copyToStagingStatusUpdateThread.Abort();
         }
-        private static void _ManageServices(ServiceActionType type)
-        {
-            int min = (type == ServiceActionType.STOP) ? 65 : 95;
-            int max = (type == ServiceActionType.STOP) ? 70 : 100;
-            var manageServicesStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Setting services to " + type, min, max));
-            manageServicesStatusUpdateThread.Start();
-
-            //iis
-            foreach (string serverName in _targetAppServers)
-            {
-                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
-                foreach (ServiceController service in appServerServices)
-                {
-                    if (service.DisplayName.Contains(_targetEnvironment))
-                    {
-                        if (type == ServiceActionType.STOP && service.CanStop)
-                        {
-                            service.Stop();
-                        }
-                        else if (type == ServiceActionType.START)
-                        {
-                            service.WaitForStatus(ServiceControllerStatus.Stopped);
-                            service.Start();
-                        }
-
-                    }
-                }
-            }
-
-            //sm
-            foreach (string serverName in _targetSMServers)
-            {
-                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
-                foreach (ServiceController service in appServerServices)
-                {
-                    if (service.DisplayName.Contains("Service Monitor"))
-                    {
-                        if (service.DisplayName.Contains(_targetEnvironment))
-                        {
-                            if (type == ServiceActionType.STOP && service.CanStop)
-                            {
-                                service.Stop();
-                            }
-                            else if (type == ServiceActionType.START)
-                            {
-                                service.WaitForStatus(ServiceControllerStatus.Stopped);
-                                service.Start();
-                            }
-                        }
-                    }
-                }
-            }
-
-            //ramq
-            foreach (string serverName in _targetRAMQServers)
-            {
-                ServiceController[] appServerServices = ServiceController.GetServices(serverName);
-                foreach (ServiceController service in appServerServices)
-                {
-                    if (service.DisplayName.Contains("RAMQ"))
-                    {
-                        if (service.DisplayName.Contains(_targetEnvironment))
-                        {
-                            if (type == ServiceActionType.STOP && service.CanStop)
-                            {
-                                service.Stop();
-                            }
-                            else if (type == ServiceActionType.START)
-                            {
-                                service.WaitForStatus(ServiceControllerStatus.Stopped);
-                                service.Start();
-                            }
-                        }
-                    }
-                }
-            }
-            manageServicesStatusUpdateThread.Abort();
-        }
         private static void _BackupCurrentDeployment()
         {
-            var backupStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Backing up current deployments", 75, 85));
+            Log("_BackupCurrentDeployment", LogEventType.MESSAGE, "_BackupCurrentDeployment started.");
+            var backupStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Backing up current deployments", _progressCounter, _progressCounter += 10));
             backupStatusUpdateThread.Start();
 
             var backupPathRoot = ConfigurationManager.AppSettings.Get("BackupPath");
@@ -515,9 +451,97 @@ namespace DeploymentManager_GUI
             }
             backupStatusUpdateThread.Abort();
         }
+        private static void _ManageServices(_ServiceActionType type)
+        {            
+            Log("_ManageServices", LogEventType.MESSAGE, "Setting services to " + type);
+            var manageServicesStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Setting services to " + type, _progressCounter, _progressCounter += 5));
+            manageServicesStatusUpdateThread.Start();
+            try
+            {
+                //iis
+                foreach (string serverName in _targetAppServers)
+                {
+                    ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                    foreach (ServiceController service in appServerServices)
+                    {
+                        if (service.DisplayName.Contains(_targetEnvironment))
+                        {
+                            if (type == _ServiceActionType.STOP && service.CanStop)
+                            {
+                                service.Stop();
+                            }
+                            else if (type == _ServiceActionType.START)
+                            {
+                                service.WaitForStatus(ServiceControllerStatus.Stopped);
+                                service.Start();
+                            }
+
+                        }
+                    }
+                }
+
+                //sm
+                foreach (string serverName in _targetSMServers)
+                {
+                    ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                    foreach (ServiceController service in appServerServices)
+                    {
+                        if (service.DisplayName.Contains("Service Monitor"))
+                        {
+                            if (service.DisplayName.Contains(_targetEnvironment))
+                            {
+                                if (type == _ServiceActionType.STOP && service.CanStop)
+                                {
+                                    service.Stop();
+                                }
+                                else if (type == _ServiceActionType.START)
+                                {
+                                    service.WaitForStatus(ServiceControllerStatus.Stopped);
+                                    service.Start();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //ramq
+                foreach (string serverName in _targetRAMQServers)
+                {
+                    ServiceController[] appServerServices = ServiceController.GetServices(serverName);
+                    foreach (ServiceController service in appServerServices)
+                    {
+                        if (service.DisplayName.Contains("RAMQ"))
+                        {
+                            if (service.DisplayName.Contains(_targetEnvironment))
+                            {
+                                if (type == _ServiceActionType.STOP && service.CanStop)
+                                {
+                                    service.Stop();
+                                }
+                                else if (type == _ServiceActionType.START)
+                                {
+                                    service.WaitForStatus(ServiceControllerStatus.Stopped);
+                                    service.Start();
+                                }
+                            }
+                        }
+                    }
+                }
+            }catch(Exception ex)
+            {
+                manageServicesStatusUpdateThread.Abort();
+                Log("_ManageServices", LogEventType.ERROR, "Message: " + ex.Message);
+                Log("_ManageServices", LogEventType.ERROR, "Stack Trace: " + ex.StackTrace);
+                LogFooter();
+            }
+
+            manageServicesStatusUpdateThread.Abort();
+
+        }
         private static void _Deploy()
         {
-            var deployStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Deploying app, sm, and ramq", 85, 95));
+            Log("_Deploy", LogEventType.MESSAGE, "_Deploy started.");
+            var deployStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Deploying app, sm, and ramq", _progressCounter, _progressCounter += 15));
             deployStatusUpdateThread.Start();
 
             foreach (string server in _targetAppServers)
@@ -586,7 +610,8 @@ namespace DeploymentManager_GUI
         }
         private static void _ExecuteSql()
         {
-            var executeSqlUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Executing SQL", 95, 100));
+            Log("_ExecuteSql", LogEventType.MESSAGE, "_ExecuteSql started.");
+            var executeSqlUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Executing SQL", _progressCounter, _progressCounter += 5));
             executeSqlUpdateThread.Start();
 
             var connectionString = "Persist Security Info=False;Integrated Security=true;Initial Catalog=" + _targetDatabase + ";server=" + _targetSQLServer;
@@ -600,9 +625,6 @@ namespace DeploymentManager_GUI
 
                 db.ConnectionContext.ExecuteNonQuery(data);
             }
-
-
-
             executeSqlUpdateThread.Abort();
         }
 
@@ -622,6 +644,24 @@ namespace DeploymentManager_GUI
                 backgroundWorker.ReportProgress(progress++);
             }
         }
+        private static void _LogHeader()
+        {
+            File.AppendAllText("log.txt", "-------------------------------------------------------------------------------" + System.Environment.NewLine);
+            File.AppendAllText("log.txt", "-Deployment Manager Started" + System.Environment.NewLine);
+            File.AppendAllText("log.txt", "-------------------------------------------------------------------------------" + System.Environment.NewLine);
+        }
+        public static void LogFooter()
+        {
+            File.AppendAllText("log.txt", "-------------------------------------------------------------------------------\n");
+            File.AppendAllText("log.txt", "-Deployment Manager Ended\n");
+            File.AppendAllText("log.txt", "-------------------------------------------------------------------------------\n");
+        }
+        public static void Log(string methodName, LogEventType type, string message)
+        {
+            string logEntry = String.Format("{0,-15} | {1,-7} | {2,-30} | {3}", DateTime.Now.ToString("yyyyMMdd_HHmmss"), type, methodName, message + System.Environment.NewLine);
+            File.AppendAllText("log.txt", logEntry);
+        }
+
     }
 }
 

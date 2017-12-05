@@ -255,7 +255,6 @@
             this.rbProduction.TabIndex = 11;
             this.rbProduction.Text = "Production";
             this.rbProduction.UseVisualStyleBackColor = true;
-            this.rbProduction.CheckedChanged += new System.EventHandler(this.radioButton11_CheckedChanged);
             // 
             // rbTEST
             // 
