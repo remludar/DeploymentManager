@@ -1,0 +1,2 @@
+﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Tax.Entities.MTVDataLakeTaxTransactionStagingService" 
+Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

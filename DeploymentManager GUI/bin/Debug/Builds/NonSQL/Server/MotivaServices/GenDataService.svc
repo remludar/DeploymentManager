@@ -1,0 +1,2 @@
+﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Util.GenDataService" 
+Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

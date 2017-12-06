@@ -8,23 +8,6 @@ C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\o
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.CoreCompileInputs.cache
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
 C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe.config
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.pdb
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csprojResolveAssemblyReference.cache
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Form1.resources
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Properties.Resources.resources
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.GenerateResource.Cache
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.CoreCompileInputs.cache
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.ConnectionInfo.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Management.Sdk.Sfc.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Smo.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.SqlEnum.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Dmf.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.ServiceBrokerEnum.dll
-C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.DynamicForm.resources
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csprojResolveAssemblyReference.cache
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.DynamicForm.resources
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Form1.resources
@@ -41,3 +24,19 @@ C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\Deployment
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.ServiceBrokerEnum.dll
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
 C:\Users\jewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe.config
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.ConnectionInfo.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Management.Sdk.Sfc.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Smo.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.SqlEnum.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.Dmf.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\bin\Debug\Microsoft.SqlServer.ServiceBrokerEnum.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.DynamicForm.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager_GUI.Properties.Resources.resources
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.GenerateResource.Cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csproj.CoreCompileInputs.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentManager GUI\obj\Debug\DeploymentManager GUI.csprojResolveAssemblyReference.cache

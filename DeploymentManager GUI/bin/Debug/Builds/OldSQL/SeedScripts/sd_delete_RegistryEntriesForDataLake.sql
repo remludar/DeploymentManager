@@ -1,0 +1,1 @@
+delete from Registry where RgstryFllKyNme in ('Motiva\DataLake\Export\Pega\Path\','Motiva\DataLakeTax\ExportPath\','Motiva\Tax\DataLakeTaxTransaction\ExportPath\')

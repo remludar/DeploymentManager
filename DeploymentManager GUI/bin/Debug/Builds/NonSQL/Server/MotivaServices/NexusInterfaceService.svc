@@ -1,0 +1,2 @@
+﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Interface.Nexus.NexusInterfaceService" 
+Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

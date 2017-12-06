@@ -1,0 +1,1 @@
+﻿<%@ServiceHost Service="Motiva.RightAngle.Server.ReferenceData.Entities.ContactMasterData.MTVContactMasterDataService" Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

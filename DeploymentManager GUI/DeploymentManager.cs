@@ -15,14 +15,20 @@ using System.Windows.Forms;
 using Microsoft.SqlServer.Management.Sdk.Sfc;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlServer.Management.Common;
+using System.IO.Compression;
+using Microsoft.VisualBasic.FileIO;
 
 namespace DeploymentManager_GUI
 {
     static class DeploymentManager
     {
+        private static string _nonSQLOutputPathLocal = ConfigurationManager.AppSettings.Get("NonSQLOutputPathLocal");
         private static string _nonSQLOutputPath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
+        private static string _sqlOutputPathLocal = ConfigurationManager.AppSettings.Get("SQLOutputPathLocal");
         private static string _sqlOutputPath = ConfigurationManager.AppSettings.Get("SQLOutputPath");
         private static string _deploymentStagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath");
+        private static string _oldSqlPathLocal = ConfigurationManager.AppSettings.Get("OldSQLPathLocal");
+
 
         private static List<string> _targetAppServers = new List<string>();
         private static List<string> _targetSMServers = new List<string>();
@@ -43,6 +49,8 @@ namespace DeploymentManager_GUI
         private static string _movementLiveCycleSQLPath = string.Empty;
         private static string _buildNumber = string.Empty;
         private static string _postBuildOutputPath = string.Empty;
+        private static string _nonSQLStagingPath = string.Empty;
+        private static string _sqlStatingPath = string.Empty;
         private static int _progressCounter = 0;
 
         private static Label progressLabel;
@@ -111,10 +119,11 @@ namespace DeploymentManager_GUI
             #endregion
             #region Nant Prep
             // Nant Prep
-            if (!Directory.Exists(_nonSQLOutputPath))
-                Directory.CreateDirectory(_nonSQLOutputPath);
-            if (!Directory.Exists(_sqlOutputPath))
-                Directory.CreateDirectory(_sqlOutputPath);
+            Directory.CreateDirectory(_nonSQLOutputPath);
+            Directory.CreateDirectory(_nonSQLOutputPathLocal);
+            Directory.CreateDirectory(_sqlOutputPath);
+            Directory.CreateDirectory(_sqlOutputPathLocal);
+            Directory.CreateDirectory(_oldSqlPathLocal);
             _rootSQLDirectories.Add("\\SeedScripts");
             _rootSQLDirectories.Add("\\OneOffs");
             _rootSQLDirectories.Add("\\Tables");
@@ -135,9 +144,12 @@ namespace DeploymentManager_GUI
 
         public static void Run()
         {
+            _SetAllAttributesNormal("Builds");
+            Directory.Delete("Builds", true);
             _AggregateNonSQL();
             _AggregateSQL();
-            _RunSQLDeploymentBuilder(_oldSqlPath, _sqlOutputPath + "\\" + _buildNumber);
+            _RunSQLDeploymentBuilder(_oldSqlPath, _sqlOutputPathLocal + "\\" + _buildNumber);
+            _CopyFilesToBuildsDirectory();
             _CopyFilesToDeploymentStaging();
             _BackupCurrentDeployment();
             _ManageServices(_ServiceActionType.STOP);
@@ -150,7 +162,6 @@ namespace DeploymentManager_GUI
         private static void _AggregateNonSQL()
         {
             Log("_AggregateNonSQL", LogEventType.MESSAGE, "AggregateNonSQL started.");
-            Directory.CreateDirectory(DeploymentManager._nonSQLOutputPath);
             DeploymentManager._nantBuildFilePath = Directory.GetCurrentDirectory();
             DeploymentManager._BuildNantFile();
         }
@@ -162,16 +173,16 @@ namespace DeploymentManager_GUI
 
             string tempFileName = Path.GetTempFileName();
             string path = "DeploymentNantBuildTemplate.build";
+            
             using (StreamWriter streamWriter = new StreamWriter(tempFileName))
             {
                 using (StreamReader streamReader = new StreamReader(path))
                 {
-                    _nonSQLOutputPath += "\\" + DeploymentManager._targetVirtualDirectory + "-" + DateTime.Now.ToString("yyyyMMdd-HHmm");
                     streamWriter.WriteLine("<project name=\"YourApp\" default=\"do-build\" xmlns=\"http://nant.sf.net/release/0.85-rc4/nant.xsd\">");
                     streamWriter.WriteLine("<!-- Version settings -->");
                     streamWriter.WriteLine();
                     streamWriter.WriteLine("<property name=\"EnvName\" value=\"" + DeploymentManager._targetVirtualDirectory + "\"/> <!-- must match IIS virtual directory name -->");
-                    streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + _nonSQLOutputPath + "\\\"/>");
+                    streamWriter.WriteLine("<property name=\"NantOutputPath\" value=\"" + _nonSQLOutputPathLocal + "\\\"/>");
                     streamWriter.WriteLine("<property name=\"TargetAppServer\" value=\"" + DeploymentManager._targetAppServers[0] + "/${EnvName}\"/>");
                     streamWriter.WriteLine("<property name=\"build.output\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle\"/>");
                     streamWriter.WriteLine("<property name=\"build.powerbuilder\" value=\"" + DeploymentManager._sourcePath + "\\RightAngle\\" + DeploymentManager._branch + "\\Motiva.RightAngle.PB\"/>");
@@ -190,8 +201,8 @@ namespace DeploymentManager_GUI
             var nantProcess = Process.Start("\"C:\\Program Files (x86)\\Nant\\bin\\NAnt.exe\"", "/f:\"" + Directory.GetCurrentDirectory() + "\\DeploymentNantBuild.build\"");
 
             while (!nantProcess.HasExited) { }
-            nantStatusUpdateThread.Abort();
             File.Delete(tempFileName);
+            nantStatusUpdateThread.Abort();
         }
         private static void _AggregateSQL()
         {
@@ -213,7 +224,7 @@ namespace DeploymentManager_GUI
             var copyRootUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Root", _progressCounter, _progressCounter += 10));
             copyRootUpdateThread.Start();
 
-            DeploymentManager._postBuildOutputPath = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\PostBuild";
+            DeploymentManager._postBuildOutputPath = DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber + "\\PostBuild";
             Directory.CreateDirectory(DeploymentManager._postBuildOutputPath);
             foreach (string rootSqlDirectory in DeploymentManager._rootSQLDirectories)
             {
@@ -222,7 +233,7 @@ namespace DeploymentManager_GUI
                     str1 = "\\SeedScripts";
                 if (rootSqlDirectory == "\\Sequence")
                     str1 = "\\Tables";
-                string str2 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + str1;
+                string str2 = DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber + str1;
                 if (!Directory.Exists(str2) && !str2.Contains("CustomAccountingFramework"))
                     Directory.CreateDirectory(str2);
                 string[] files = Directory.GetFiles(DeploymentManager._motivaSQLPath + rootSqlDirectory, "*.sql");
@@ -246,7 +257,7 @@ namespace DeploymentManager_GUI
                         else if (rootSqlDirectory.Contains("CustomAccountingFramework"))
                         {
                             string str3 = ((IEnumerable<string>)rootSqlDirectory.Split('\\')).Last<string>();
-                            string path1 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\" + str3;
+                            string path1 = DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber + "\\" + str3;
                             File.Copy(files[index], Path.Combine(path1, ((IEnumerable<string>)files[index].Split('\\')).Last<string>()), true);
                             continue;
                         }
@@ -263,7 +274,7 @@ namespace DeploymentManager_GUI
             var copyMovementLifeCycleProgressUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Combining Movement LifeCycle", _progressCounter, _progressCounter += 5));
             copyMovementLifeCycleProgressUpdateThread.Start();
 
-            string str1 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\";
+            string str1 = DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber + "\\";
             string str2 = string.Empty;
             string[] files = Directory.GetFiles(DeploymentManager._movementLiveCycleSQLPath, "*.sql");
             for (int index = 0; index < files.Length; ++index)
@@ -291,7 +302,7 @@ namespace DeploymentManager_GUI
             copyAdditionalScriptsProgressUpdateThread.Start();
 
             string path1_1 = "GrantScript";
-            string path1_2 = DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber;
+            string path1_2 = DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber;
             File.Copy(Path.Combine(path1_1, "DB - Database_Grants_20160616.sql"), Path.Combine(path1_2, "DB - Database_Grants_20160616.sql"));
             File.Copy(Path.Combine("DeploymentScript", "SQLDeploymentPrepAndCopy_Add_Grants_Dev_Motiva.bat"), Path.Combine(path1_2, "SQLDeploymentPrepAndCopy_Add_Grants_Dev_Motiva.bat"));
             File.Copy(Path.Combine("DeploymentBuilder", "DeploymentBuilder.exe"), Path.Combine(path1_2, "DeploymentBuilder.exe"));
@@ -304,7 +315,7 @@ namespace DeploymentManager_GUI
             combineGrantScriptsProgressUpdateThread.Start();
 
             string[] files = Directory.GetFiles(DeploymentManager._postBuildOutputPath);
-            using (FileStream fileStream1 = File.Create(DeploymentManager._sqlOutputPath + "\\" + DeploymentManager._buildNumber + "\\PostBuildScripts.sql"))
+            using (FileStream fileStream1 = File.Create(DeploymentManager._sqlOutputPathLocal + "\\" + DeploymentManager._buildNumber + "\\PostBuildScripts.sql"))
             {
                 foreach (string path in files)
                 {
@@ -321,8 +332,25 @@ namespace DeploymentManager_GUI
             var createSQLProgressUpdateThread = new Thread(() => DeploymentManager._StartNewProgressUpdateThread("Creating SQL File", _progressCounter, _progressCounter += 15));
             createSQLProgressUpdateThread.Start();
 
+            #region compress decompress too slow
+            //Copy old sql down to local
+
+            //Log("_RunSQLDeploymentBuilder", LogEventType.MESSAGE, "Compressing and copying remote sql file.");
+
+            ////Compress, Copy down, and Decompress
+            //ZipFile.CreateFromDirectory(oldSqlPath, _oldSqlPathLocal+"\\tmp");
+
+            //Log("_RunSQLDeploymentBuilder", LogEventType.MESSAGE, "Decompressing copied sql file.");
+            //ZipFile.ExtractToDirectory(_oldSqlPathLocal+"\\tmp", _oldSqlPathLocal);
+            //Log("_RunSQLDeploymentBuilder", LogEventType.MESSAGE, "Finished with copy.");
+
+            //File.Delete(_oldSqlPathLocal + "\\tmp");
+            #endregion
+
+            _Robocopy(oldSqlPath, _oldSqlPathLocal);
+
             //Run what used to be the "Deployment Builder" that compares the 2 sql files
-            DeploymentBuilder.Run(oldSqlPath, sqlOutputPath);
+            DeploymentBuilder.Run(_oldSqlPathLocal, sqlOutputPath);
 
             string sqlBuildFilePath = sqlOutputPath + "\\SQLBuild.sql";
             string baseGrantsFilePath = sqlOutputPath + "\\DB - Database_Grants_20160616.sql";
@@ -336,43 +364,53 @@ namespace DeploymentManager_GUI
 
             string fileName = "\\SQLDeploy_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".sql";
             string sqlDeployFilePath = sqlOutputPath + fileName;
-            string sqlNonSQLFilePath = ConfigurationManager.AppSettings.Get("NonSQLOutputPath");
-            var mostRecentNonSQLDirectory = new DirectoryInfo(sqlNonSQLFilePath).GetDirectories()
-                       .OrderByDescending(d => d.LastWriteTimeUtc).First().FullName;
-            mostRecentNonSQLDirectory += fileName;
 
+            //Rename the file
             File.Move(sqlBuildFilePath, sqlDeployFilePath);
 
             //Copy the final sql output back to its .NET directory for easy deployment
-            File.Copy(sqlDeployFilePath, mostRecentNonSQLDirectory);
+            File.Copy(sqlDeployFilePath, _nonSQLOutputPathLocal + fileName);
+
+            //Delete our temporary local copy of the old sql
+            //Directory.Delete(_oldSqlPathLocal, true);
 
             createSQLProgressUpdateThread.Abort();
 
         }
+        private static void _CopyFilesToBuildsDirectory()
+        {
+            var copyToBuildsThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Builds Directory", _progressCounter, _progressCounter += 5));
+            copyToBuildsThread.Start();
+
+            //Copy to Builds Directory
+            _nonSQLOutputPath += "\\" + DeploymentManager._targetVirtualDirectory + "-" + DateTime.Now.ToString("yyyyMMdd-HHmm");
+            Directory.CreateDirectory(_nonSQLOutputPath);
+            Log("_CopyFilesToBuildsDirectory", LogEventType.MESSAGE, "Uploading nonsql files started.");
+            _Robocopy(_nonSQLOutputPathLocal, _nonSQLOutputPath);
+            Log("_CopyFilesToBuildsDirectory", LogEventType.MESSAGE, "Uploading sql files started.");
+            _Robocopy(_sqlOutputPathLocal, _sqlOutputPath);
+
+            copyToBuildsThread.Abort();
+        }
         private static void _CopyFilesToDeploymentStaging()
         {
-            Log("_CopyFilesToDeploymentStaging", LogEventType.MESSAGE, "_CopyFilesToDeploymentStaging started.");
-            var copyToStagingStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Staging", _progressCounter, _progressCounter += 15));
-            copyToStagingStatusUpdateThread.Start();
+            var copyToStagingThread = new Thread(() => _StartNewProgressUpdateThread("Copying Files to Staging", _progressCounter, _progressCounter += 5));
+            copyToStagingThread.Start();
 
-            //Create all of the directories
-            string destinationPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment;
-            foreach (string dirPath in Directory.GetDirectories(_nonSQLOutputPath, "*", SearchOption.AllDirectories))
-                Directory.CreateDirectory(dirPath.Replace(_nonSQLOutputPath, destinationPath));
+            //delete old sql file
+            foreach (string fileToDelete in Directory.GetFiles(_deploymentStagingPath, "*.sql"))
+                File.Delete(fileToDelete);
+            
+            //Copy to Staging Directory
+            Log("_CopyFilesToDeploymentStaging", LogEventType.MESSAGE, "Moving files to staging path.");
+            _Robocopy(_nonSQLOutputPath, _deploymentStagingPath);
 
-            //Delete the sql file
-            foreach (string newPath in Directory.GetFiles(destinationPath, "*sql", SearchOption.TopDirectoryOnly))
-                File.Delete(newPath);
-
-            //Copy all the files & Replaces any files with the same name
-            foreach (string newPath in Directory.GetFiles(_nonSQLOutputPath, "*.*", SearchOption.AllDirectories))
-                File.Copy(newPath, newPath.Replace(_nonSQLOutputPath, destinationPath), true);
-
-            copyToStagingStatusUpdateThread.Abort();
+            Log("_CopyFilesToDeploymentStaging", LogEventType.MESSAGE, "CopyFilesToDeploymentStaging finished.");
+            copyToStagingThread.Abort();
         }
         private static void _BackupCurrentDeployment()
         {
-            Log("_BackupCurrentDeployment", LogEventType.MESSAGE, "_BackupCurrentDeployment started.");
+            Log("_BackupCurrentDeployment", LogEventType.MESSAGE, "BackupCurrentDeployment started.");
             var backupStatusUpdateThread = new Thread(() => _StartNewProgressUpdateThread("Backing up current deployments", _progressCounter, _progressCounter += 10));
             backupStatusUpdateThread.Start();
 
@@ -381,73 +419,26 @@ namespace DeploymentManager_GUI
 
             foreach (string server in _targetAppServers)
             {
-                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var currentDeploymentPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
                 var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\Server";
-
-                //Create all of the directories
-                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
-
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        if (newPath.Contains("Scraps") ||
-                            newPath.Contains("ReportViews") ||
-                            newPath.Length >= 260)
-                            continue;
-                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
-                    }
-                }
+                Directory.CreateDirectory(backupPath);
+                _Robocopy(currentDeploymentPath, backupPath);
             }
 
             foreach (string server in _targetSMServers)
             {
-                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
+                var currentDeploymentPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
                 var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\Server";
-
-                //Create all of the directories
-                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
-
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        if (newPath.Length > 260)
-                            continue;
-                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
-                    }
-                }
+                Directory.CreateDirectory(backupPath);
+                _Robocopy(currentDeploymentPath, backupPath);
             }
 
             foreach (string server in _targetRAMQServers)
             {
-                var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\RightAngleIV";
+                var currentDeploymentPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\RightAngleIV";
                 var backupPath = "\\\\" + server + "\\" + backupPathRoot + _targetEnvironment + "\\" + timeStamp + "\\RightAngleIV";
-
-                //Create all of the directories
-                var directories = Directory.GetDirectories(destinationPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(destinationPath, backupPath));
-
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(destinationPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        if (newPath.Length > 260)
-                            continue;
-                        File.Copy(newPath, newPath.Replace(destinationPath, backupPath), true);
-                    }
-                }
+                Directory.CreateDirectory(backupPath);
+                _Robocopy(currentDeploymentPath, backupPath);
             }
             backupStatusUpdateThread.Abort();
         }
@@ -548,63 +539,65 @@ namespace DeploymentManager_GUI
             {
                 var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
                 var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\Server";
+                _Robocopy(stagingPath, destinationPath);
 
-                //Create all of the directories
-                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
+                ////Create all of the directories
+                //var directories = Directory.GetDirectories(stagingPath, "*", System.IO.SearchOption.AllDirectories);
+                //if (directories.Count() > 0)
+                //{
+                //    foreach (string dirPath in directories)
+                //        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
 
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
-                    }
-                }
+                //    //Copy all the files & Replaces any files with the same name
+                //    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", System.IO.SearchOption.AllDirectories))
+                //    {
+                //        //TODO: Need a better solution for this
+                //        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                //    }
+                //}
             }
 
             foreach (string server in _targetSMServers)
             {
                 var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\Server";
                 var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\serviceServer";
+                _Robocopy(stagingPath, destinationPath);
+                ////Create all of the directories
+                //var directories = Directory.GetDirectories(stagingPath, "*", System.IO.SearchOption.AllDirectories);
+                //if (directories.Count() > 0)
+                //{
+                //    foreach (string dirPath in directories)
+                //        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
 
-                //Create all of the directories
-                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
-
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
-                    }
-                }
+                //    //Copy all the files & Replaces any files with the same name
+                //    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", System.IO.SearchOption.AllDirectories))
+                //    {
+                //        //TODO: Need a better solution for this
+                //        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                //    }
+                //}
             }
 
             foreach (string server in _targetRAMQServers)
             {
                 var destinationPath = "\\\\" + server + "\\" + _targetDeploymentPath + "\\RightAngleIV";
                 var stagingPath = ConfigurationManager.AppSettings.Get("DeploymentStagingPath") + "\\" + _targetEnvironment + "\\RightAngleIV";
+                _Robocopy(stagingPath, destinationPath);
 
-                //Create all of the directories
-                var directories = Directory.GetDirectories(stagingPath, "*", SearchOption.AllDirectories);
-                if (directories.Count() > 0)
-                {
-                    foreach (string dirPath in directories)
-                        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
+                ////Create all of the directories
+                //var directories = Directory.GetDirectories(stagingPath, "*", System.IO.SearchOption.AllDirectories);
+                //if (directories.Count() > 0)
+                //{
+                //    foreach (string dirPath in directories)
+                //        Directory.CreateDirectory(dirPath.Replace(stagingPath, destinationPath));
 
-                    //Copy all the files & Replaces any files with the same name
-                    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", SearchOption.AllDirectories))
-                    {
-                        //TODO: Need a better solution for this
-                        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
-                    }
-                }
+                //    //Copy all the files & Replaces any files with the same name
+                //    foreach (string newPath in Directory.GetFiles(stagingPath, "*.*", System.IO.SearchOption.AllDirectories))
+                //    {
+                //        //TODO: Need a better solution for this
+                //        File.Copy(newPath, newPath.Replace(stagingPath, destinationPath), true);
+                //    }
+                //}
             }
             deployStatusUpdateThread.Abort();
         }
@@ -619,7 +612,7 @@ namespace DeploymentManager_GUI
             {
                 Server db = new Server(new ServerConnection(conn));
 
-                var sqlFileName = Directory.GetFiles(_deploymentStagingPath, "*sql", SearchOption.TopDirectoryOnly).First();
+                var sqlFileName = Directory.GetFiles(_deploymentStagingPath, "*sql", System.IO.SearchOption.TopDirectoryOnly).First();
 
                 string data = File.ReadAllText(sqlFileName);
 
@@ -629,6 +622,31 @@ namespace DeploymentManager_GUI
         }
 
         //Helpers
+        private static void _SetAllAttributesNormal(string directory)
+        {
+            foreach (var subDir in Directory.GetDirectories(directory))
+            {
+                var directoryInfo = new DirectoryInfo(directory);
+                directoryInfo.Attributes = FileAttributes.Normal; 
+                _SetAllAttributesNormal(subDir);
+            }
+            foreach (var file in Directory.GetFiles(directory))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+            }
+        }
+        private static void _Robocopy(string sourcePath, string destinationPath)
+        {
+            using (Process p = new Process())
+            {
+                p.StartInfo.Arguments = string.Format("/C ROBOCOPY {0} {1} {2}", "/E /MT", "\"" + sourcePath + "\"", "\"" + destinationPath + "\"");
+                p.StartInfo.FileName = "CMD.EXE";
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.UseShellExecute = false;
+                p.Start();
+                p.WaitForExit();
+            }
+        }
         private static void _UpdateProgressLabel(string text)
         {
             progressLabel.Invoke((Action)delegate { progressLabel.Text = text; });

@@ -206,7 +206,7 @@ namespace DeploymentManager_GUI
             _progressBar.Height = 40;
             _progressBar.Hide();
 
-            _progressLabel = new Label(); _progressLabel.Text = "This is test text";
+            _progressLabel = new Label(); _progressLabel.Text = "Starting Deployment";
             _progressLabel.Location = new Point(_progressBar.Location.X , _progressBar.Location.Y + 45);
             _progressLabel.Font = _font;
             _progressLabel.Width = 225;

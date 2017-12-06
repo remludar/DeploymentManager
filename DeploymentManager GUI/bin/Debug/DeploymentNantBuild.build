@@ -2,7 +2,7 @@
 <!-- Version settings -->
 
 <property name="EnvName" value="RightAngle.15.0.RegressDev"/> <!-- must match IIS virtual directory name -->
-<property name="NantOutputPath" value="\\10.58.40.18\deployment\Builds\NonSQL\RightAngle.15.0.RegressDev-20171205-1512\"/>
+<property name="NantOutputPath" value="Builds\NonSQL\"/>
 <property name="TargetAppServer" value="MOTAPPDEV3001.motivadev.dev/${EnvName}"/>
 <property name="build.output" value="C:\Source\RightAngle\Development\Motiva.RightAngle"/>
 <property name="build.powerbuilder" value="C:\Source\RightAngle\Development\Motiva.RightAngle.PB"/>

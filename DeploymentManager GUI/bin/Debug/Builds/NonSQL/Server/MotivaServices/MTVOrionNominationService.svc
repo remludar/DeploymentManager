@@ -1,0 +1,3 @@
+﻿<%@ServiceHost language="C#" Debug="true" 
+Service="Motiva.RightAngle.Server.Scheduling.Entities.Orion.OrionNominationService" 
+Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

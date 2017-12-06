@@ -1,0 +1,2 @@
+IF EXISTS(SELECT 1 FROM dbo.sysobjects WHERE id = OBJECT_ID(N'dbo.MTVContractChangeStage') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+	ALTER TABLE MTVContractChangeStage ALTER COLUMN LogisticsReconciliation BIT NULL
