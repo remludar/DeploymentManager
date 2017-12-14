@@ -1,2 +1,0 @@
-﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Accounting.Entities.SAPInterface.MTVSAPGLStagingService" 
-Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

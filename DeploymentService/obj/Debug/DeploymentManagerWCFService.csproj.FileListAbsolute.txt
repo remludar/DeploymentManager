@@ -1,0 +1,10 @@
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentService.dll.config
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentService.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentService.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\obj\Debug\DeploymentManagerWCFService.csprojResolveAssemblyReference.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\obj\Debug\DeploymentManagerWCFService.csproj.CoreCompileInputs.cache
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\obj\Debug\DeploymentService.dll
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\obj\Debug\DeploymentService.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentManager GUI.exe
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentManager GUI.pdb
+C:\Users\jason.ewton\Dropbox\Work\Projects\Motiva\_repos\DeploymentManager\DeploymentService\bin\DeploymentManager GUI.exe.config

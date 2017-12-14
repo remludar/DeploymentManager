@@ -1,2 +1,0 @@
-﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Trading.Entities.TMSContract.MTVTMSAccountStagingService" 
-Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

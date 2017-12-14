@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/System.ComponentModel" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/System.ComponentModel" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://10.58.40.18:81/DeploymentService.svc?xsd=xsd4" namespace="http://schemas.datacontract.org/2004/07/System" />
+  <xs:complexType name="BackgroundWorker">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:Component">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="WorkerReportsProgress" type="xs:boolean" />
+          <xs:element minOccurs="0" name="WorkerSupportsCancellation" type="xs:boolean" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="BackgroundWorker" nillable="true" type="tns:BackgroundWorker" />
+  <xs:complexType name="Component">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.datacontract.org/2004/07/System" base="q1:MarshalByRefObject">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Site" nillable="true" type="xs:anyType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="Component" nillable="true" type="tns:Component" />
+</xs:schema>

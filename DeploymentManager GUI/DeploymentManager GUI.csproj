@@ -49,6 +49,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -61,6 +63,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Connected Services\DeploymentManagerServiceReference\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="CustomConfig\AppServer.cs" />
     <Compile Include="CustomConfig\AppServerCollection.cs" />
     <Compile Include="CustomConfig\DBName.cs" />
@@ -99,6 +106,25 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService.wsdl" />
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService3.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService4.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService5.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -113,8 +139,18 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Connected Services\DeploymentManagerServiceReference\DeploymentService.disco" />
+    <None Include="Connected Services\DeploymentManagerServiceReference\configuration91.svcinfo" />
+    <None Include="Connected Services\DeploymentManagerServiceReference\configuration.svcinfo" />
+    <None Include="Connected Services\DeploymentManagerServiceReference\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
     <Content Include="Resources\Motiva_Logo.jpg" />
     <None Include="Resources\Motiva_Logo1.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Connected Services\DeploymentManagerServiceReference\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

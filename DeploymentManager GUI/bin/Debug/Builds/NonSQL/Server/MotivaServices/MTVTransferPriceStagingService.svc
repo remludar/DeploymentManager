@@ -1,2 +1,0 @@
-﻿<%@ServiceHost Service="Motiva.RightAngle.Server.Pricing.Entities.MTVTransferPriceStagingService" 
-Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

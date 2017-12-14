@@ -1,2 +1,0 @@
-ALTER TABLE MTVTMSGaugeFreezeStaging
-ALTER COLUMN ProcessedDate DateTime

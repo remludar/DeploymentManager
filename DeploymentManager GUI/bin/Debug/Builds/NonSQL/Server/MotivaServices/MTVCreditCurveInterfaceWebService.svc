@@ -1,2 +1,0 @@
-<%@ServiceHost Service="Motiva.RightAngle.Server.Risk.Entities.MTVCreditCurve.MTVCreditCurveService" 
-Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

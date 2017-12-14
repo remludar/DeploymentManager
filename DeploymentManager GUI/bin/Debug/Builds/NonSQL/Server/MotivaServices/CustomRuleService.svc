@@ -1,1 +1,0 @@
-<%@ServiceHost Service="SolArc.RightAngle.Custom.Rule.Server.Service.CustomRuleService,SolArc.RightAngle.Custom.Rule.Server"  Factory="SolArc.RightAngle.Server.ServiceModel.ApplicationServiceHostFactory"%>

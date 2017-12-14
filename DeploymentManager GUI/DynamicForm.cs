@@ -263,7 +263,7 @@ namespace DeploymentManager_GUI
         {
             
             DeploymentManager.Init(_bgWorker, _progressLabel, _selectedBranch, _selectedSqlPath, _selectedSourcePath, _selectedEnvironment);
-            DeploymentManager.Run();
+            //DeploymentManager.Run();
         }
 
         private void _bgWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
